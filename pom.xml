@@ -20,7 +20,7 @@
   <groupId>org.jenkins-ci.plugins</groupId>
   <artifactId>skytap-cloud-plugin</artifactId>
       <name>Skytap Cloud CI Plugin</name>
-  <version>1.01</version>
+  <version>1.02-SNAPSHOT</version>
   
   <packaging>hpi</packaging>
 
