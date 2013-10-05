@@ -178,7 +178,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 			JenkinsLogger.log("Sleeping for 30 seconds.");
 			try {
-				Thread.sleep(30000);
+				Thread.sleep(60000);
 			} catch (InterruptedException e) {
 				JenkinsLogger.error("Error: " + e.getMessage());
 			}
