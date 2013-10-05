@@ -1,0 +1,13 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+ <f:section title="${%Skytap Cloud Plugin}" >
+    <f:entry title="${%User ID}" field="userId" >
+  		<f:textbox default="${descriptor.userId()}" />
+  	</f:entry>
+  	<f:entry title="${%API Security Token}" field="authKey" >
+  		<f:password default="${descriptor.authKey()}" />
+  	</f:entry>
+  	<f:entry title="${%Skytap Cloud Logging}" field="loggingEnabled" >
+  		<f:checkbox name="skytap.loggingEnabled" checked="${descriptor.isLoggingEnabled()}" /> Enable Console Logging of Skytap Actions
+  	</f:entry>  	
+  </f:section>
+</j:jelly>

@@ -1,0 +1,38 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<f:entry name="runState" title="Action" field="runState">
+
+<select name="runState">
+   <j:if test="${instance.runState=='running'}"><option value="running" selected="SELECTED">Run Configuration</option></j:if>
+   <j:if test="${instance.runState!='running'}"><option value="running">Run Configuration</option></j:if>
+   
+   <j:if test="${instance.runState=='suspended'}"><option value="suspended" selected="SELECTED">Suspend Configuration</option></j:if>
+   <j:if test="${instance.runState!='suspended'}"><option value="suspended">Suspend Configuration</option></j:if>
+   
+   <j:if test="${instance.runState=='stopped'}"><option value="stopped" selected="SELECTED">Shutdown Configuration</option></j:if>
+   <j:if test="${instance.runState!='stopped'}"><option value="stopped">Shutdown Configuration</option></j:if>
+</select>
+      
+</f:entry>
+
+  	<f:entry title="Configuration ID" field="configurationID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="Configuration File" field="configurationFile" >
+  		<f:textbox />
+  	</f:entry>
+
+<!--   
+<f:section title="Advanced SKYTAP Options">
+  <f:advanced>
+    <p:config-quietPeriod />
+    <st:include page="configure-advanced.jelly" optional="true" />
+  </f:advanced>
+</f:section>
+   -->
+   
+</j:jelly>
+  
+  
+  

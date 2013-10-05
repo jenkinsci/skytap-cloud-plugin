@@ -1,0 +1,33 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  	<f:entry title="Configuration ID" field="configurationID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="Configuration File" field="configurationFile" >
+  		<f:textbox />
+  	</f:entry>
+  	
+  	 <f:entry title="URL Save Filename" field="urlSaveFilename" >
+  		<f:textbox />
+  	</f:entry>
+
+<f:entry name="permissionOption" title="Select Permissions" field="permissionOption">
+    <select name="permissionOption">
+        <option value="do_not_publish">Don't Publish</option>
+        <option value="view_only">View Only</option>
+        <option value="use">Use</option>
+        <option value="run_and_use">Run, Suspend</option>
+    </select>
+</f:entry>
+
+    <f:optionalBlock name="requirePassword" title="Require Password for Access" checked="true" >
+      <f:entry title="Password">
+        <f:password name="urlPassword" field="urlPassword"/>
+      </f:entry>
+    </f:optionalBlock>
+
+  	
+</j:jelly>
+
