@@ -18,7 +18,7 @@
   </parent>
 
   <groupId>org.jenkins-ci.plugins</groupId>
-  <artifactId>skytap</artifactId>
+  <artifactId>skytap-cloud-plugin</artifactId>
       <name>Skytap Cloud CI Plugin</name>
   <version>1.01-SNAPSHOT</version>
   
