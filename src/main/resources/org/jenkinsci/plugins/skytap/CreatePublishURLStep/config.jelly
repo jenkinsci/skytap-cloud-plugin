@@ -15,10 +15,17 @@
 
 <f:entry name="permissionOption" title="Select Permissions" field="permissionOption">
     <select name="permissionOption">
-        <option value="do_not_publish">Don't Publish</option>
-        <option value="view_only">View Only</option>
-        <option value="use">Use</option>
-        <option value="run_and_use">Run, Suspend</option>
+        <j:if test="${instance.permissionOption=='do_not_publish'}"><option value="do_not_publish" selected="SELECTED">Don't Publish</option></j:if>
+        <j:if test="${instance.permissionOption!='do_not_publish'}"><option value="do_not_publish">Don't Publish</option></j:if>
+        
+        <j:if test="${instance.permissionOption=='view_only'}"><option value="view_only" selected="SELECTED">View Only</option></j:if>
+        <j:if test="${instance.permissionOption!='view_only'}"><option value="view_only">View Only</option></j:if>
+                
+        <j:if test="${instance.permissionOption=='use'}"><option value="use" selected="SELECTED">Use</option></j:if>
+        <j:if test="${instance.permissionOption!='use'}"><option value="use">Use</option></j:if>
+                
+        <j:if test="${instance.permissionOption=='run_and_use'}"><option value="run_and_use" selected="SELECTED" >Run, Suspend</option></j:if>
+        <j:if test="${instance.permissionOption!='run_and_use'}"><option value="run_and_use" >Run, Suspend</option></j:if>
     </select>
 </f:entry>
 
@@ -28,6 +35,5 @@
       </f:entry>
     </f:optionalBlock>
 
-  	
 </j:jelly>
 
