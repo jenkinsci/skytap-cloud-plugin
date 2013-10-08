@@ -38,6 +38,9 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	// the runtime config id will be set one of two ways:
 	// either the user has provided just a config id, so we use it,
@@ -72,6 +75,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
@@ -178,7 +182,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 			JenkinsLogger.log("Sleeping for 30 seconds.");
 			try {
-				Thread.sleep(60000);
+				Thread.sleep(30000);
 			} catch (InterruptedException e) {
 				JenkinsLogger.error("Error: " + e.getMessage());
 			}
@@ -247,7 +251,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 		// create request for Skytap API
 		HttpPut hp = SkytapUtils.buildHttpPutRequest(requestURL,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute request
 		String httpRespBody = "";
@@ -326,7 +330,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 		// build http request
 		HttpGet hg = SkytapUtils.buildHttpGetRequest(getRequest,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute HTTP GET request
 		String getResponse = "";

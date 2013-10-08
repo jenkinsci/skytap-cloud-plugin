@@ -35,6 +35,9 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	// the runtime config id will be set one of two ways:
 	// either the user has provided just a config id, so we use it,
@@ -68,6 +71,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
@@ -86,7 +90,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		String runtimeNetworkID = "";
 		
 		try {
-			runtimeNetworkID = SkytapUtils.getNetworkIdFromName(runtimeConfigurationID, configurationNetworkName, this.globalVars.getEncodedCredentials());
+			runtimeNetworkID = SkytapUtils.getNetworkIdFromName(runtimeConfigurationID, configurationNetworkName, this.authCredentials);
 		} catch (SkytapException e1) {
 			JenkinsLogger.error(e1.getError());
 			return false;
@@ -155,7 +159,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		String reqUrl = this.buildConnectRequestURL(confId, networkId, vpnId);
 		
 		// create request
-		HttpPut hp = SkytapUtils.buildHttpPutRequest(reqUrl, this.globalVars.getEncodedCredentials());
+		HttpPut hp = SkytapUtils.buildHttpPutRequest(reqUrl, this.authCredentials);
 		
 		// add content to request - vpn identifier
 		BasicHttpEntity he = new BasicHttpEntity();
@@ -224,7 +228,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		String requestUrl = this.buildRequestURL(confId, networkId);
 		
 		// create request
-		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestUrl, this.globalVars.getEncodedCredentials());
+		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestUrl, this.authCredentials);
         	
 		// add content to request - vpn identifier
 		BasicHttpEntity he = new BasicHttpEntity();

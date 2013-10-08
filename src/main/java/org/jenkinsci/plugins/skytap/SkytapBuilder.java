@@ -87,27 +87,7 @@ public class SkytapBuilder extends Builder {
         	
     	    return FormValidation.ok();
         	}
-        
-        public FormValidation doCheckConfigurationFile(@QueryParameter String configurationFile){
-        	
-        	// some files won't exist yet at the moment the user enters their path - they get 
-        	// created during the build so need to separate out those cases
-        	
-//        	if(configurationFile.equals("")){ return FormValidation.ok(); }
-//        	
-//        	File f = new File(configurationFile);
-//        	
-//        	if(!f.isFile() || !f.exists()){
-//        		return FormValidation.error("The value you entered: " + configurationFile + " does not refer to a valid file. Please enter the full path to a valid Skytap configuration file.");
-//        	}
-//        	
-//        	if(!f.canRead()){
-//        		return FormValidation.error("The file you entered: " + configurationFile + " does not appear to have read permissions. Please grant the appropriate permissions before proceeding.");
-//        	}
-//        	
-        	return FormValidation.ok();
-        }
-        
+                
         public FormValidation doCheckProjectID(@QueryParameter String projectID, @QueryParameter String projectName ){
         	
         	// make sure id is a valid number
@@ -125,21 +105,13 @@ public class SkytapBuilder extends Builder {
         	return FormValidation.ok();
         }
         
-        
-        
     }
     
     @Override
     public boolean perform(AbstractBuild build, Launcher launcher, BuildListener listener) {
-        
-    	// encode skytap auth credentials
-		String uid = getDescriptor().getUserId();
-		String authkey = getDescriptor().getAuthKey();
-		String cred = uid + ":" + authkey;
-		String encodedCred = SkytapUtils.encodeAuthCredentials(cred);
-    	
+            	
 		// initialize global vars object to be passed to the skytap action
-		SkytapGlobalVariables globalVars = new SkytapGlobalVariables(encodedCred, getDescriptor().isLoggingEnabled());
+		SkytapGlobalVariables globalVars = new SkytapGlobalVariables(getDescriptor().isLoggingEnabled());
 		
 		// instantiate a Jenkins Logger for use by the steps
 		JenkinsLogger theLogger = new JenkinsLogger(listener, getDescriptor().isLoggingEnabled());
@@ -166,9 +138,7 @@ public class SkytapBuilder extends Builder {
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
 
-		private String userId;
-		private String authKey;
-		private Boolean loggingEnabled;
+		private Boolean loggingEnabled = true;
 
 		public DescriptorImpl() {
 			load();
@@ -188,29 +158,13 @@ public class SkytapBuilder extends Builder {
 
         @Override
         public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-            
-        	userId = formData.getString("userId");
-        	authKey = formData.getString("authKey");
+
         	loggingEnabled = formData.getBoolean("loggingEnabled");
         	
             save();
             return super.configure(req,formData);
         }
         
-        public FormValidation doValidate(@QueryParameter("configurationID") final String accessId,
-                @QueryParameter("configurationFile") final String secretKey) throws IOException, ServletException {
-        	
-        	return FormValidation.error("BLAH");
-        }
-
-		public String getUserId() {
-			return userId;
-		}
-
-		public String getAuthKey() {
-			return authKey;
-		}
-
 		public Boolean isLoggingEnabled() {
 			return loggingEnabled;
 		}

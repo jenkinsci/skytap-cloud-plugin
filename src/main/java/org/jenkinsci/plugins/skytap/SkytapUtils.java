@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.skytap;
 import hudson.EnvVars;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.util.VariableResolver;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -138,7 +139,7 @@ public class SkytapUtils {
 	 * @param unencodedCredential
 	 * @return
 	 */
-	public static String encodeAuthCredentials(String unencodedCredential) {
+	private static String encodeAuthCredentials(String unencodedCredential) {
 
 		byte[] encoded = Base64.encodeBase64(unencodedCredential.getBytes());
 
@@ -146,6 +147,25 @@ public class SkytapUtils {
 
 		return encodedCredential;
 
+	}
+	
+	/**
+	 * Retrieves user id and auth key from the project build environment,
+	 * encodes and returns encoded credential string to the user.
+	 * 
+	 * @param AbstractBuild
+	 * @return String
+	 */
+	public static String getAuthCredentials(AbstractBuild build){
+		
+		VariableResolver vr = build.getBuildVariableResolver();
+		String uid = vr.resolve("userId").toString();
+		String authkey = vr.resolve("authKey").toString();
+		String cred = uid + ":" + authkey;
+		
+		String encodedCred = encodeAuthCredentials(cred);
+		return encodedCred;
+		
 	}
 
 	/**

@@ -27,6 +27,9 @@ public class NetworkConnectStep extends SkytapAction {
 	// these vars will be initialized when the step is run
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	// runtime source network config ID
 	@XStreamOmitField
@@ -65,6 +68,7 @@ public class NetworkConnectStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// reset step parameters with env vars resolved at runtime
 		String expSourceNetworkConfigurationFile = SkytapUtils.expandEnvVars(
@@ -96,7 +100,7 @@ public class NetworkConnectStep extends SkytapAction {
 		try {
 			runtimeSourceNetworkID = SkytapUtils.getNetworkIdFromName(
 					runtimeSourceNetworkConfigurationID, sourceNetworkName,
-					this.globalVars.getEncodedCredentials());
+					this.authCredentials);
 		} catch (SkytapException e1) {
 			JenkinsLogger.error(e1.getError());
 			return false;
@@ -105,7 +109,7 @@ public class NetworkConnectStep extends SkytapAction {
 		try {
 			runtimeTargetNetworkID = SkytapUtils.getNetworkIdFromName(
 					runtimeTargetNetworkConfigurationID, targetNetworkName,
-					this.globalVars.getEncodedCredentials());
+					this.authCredentials);
 		} catch (SkytapException e1) {
 			JenkinsLogger.error(e1.getError());
 			return false;
@@ -141,7 +145,7 @@ public class NetworkConnectStep extends SkytapAction {
 
 		// create request for Skytap API
 		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestURL,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute request
 		String httpRespBody = SkytapUtils.executeHttpRequest(hp);

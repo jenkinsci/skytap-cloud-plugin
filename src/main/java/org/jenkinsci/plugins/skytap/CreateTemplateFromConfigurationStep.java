@@ -36,6 +36,9 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
 	
+	@XStreamOmitField
+	private String authCredentials;
+	
 	// the runtime config id will be set one of two ways:
 	// either the user has provided just a config id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
@@ -72,6 +75,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 		
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
@@ -154,7 +158,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		
 		// create request for Skytap API
 		HttpPost hp = SkytapUtils.buildHttpPostRequest(templateCreateRequestUrl,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute request
 		String httpRespBody = SkytapUtils.executeHttpRequest(hp);
@@ -178,7 +182,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
     		
     	String reqUrl = buildRequestUpdateURL(templateId, name, desc);
     	
-    	HttpPut hp = SkytapUtils.buildHttpPutRequest(reqUrl, globalVars.getEncodedCredentials());
+    	HttpPut hp = SkytapUtils.buildHttpPutRequest(reqUrl, this.authCredentials);
     	
     	String httpResponse = SkytapUtils.executeHttpRequest(hp);
 

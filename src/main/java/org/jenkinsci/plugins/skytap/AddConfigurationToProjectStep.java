@@ -11,6 +11,7 @@ import javax.servlet.ServletException;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.util.FormValidation;
+import hudson.util.VariableResolver;
 
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -47,6 +48,9 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 	// id from the json element
 	@XStreamOmitField
 	private String runtimeConfigurationID;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	@DataBoundConstructor
 	public AddConfigurationToProjectStep(String configurationID,
@@ -57,20 +61,22 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		this.projectID = projectID;
 		this.projectName = projectName;
 	}
-
+	
 	public Boolean executeStep(AbstractBuild build,
 			SkytapGlobalVariables globalVars) {
 		
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		JenkinsLogger.defaultLogMessage("Adding Configuration to Project Step");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		
+				
+		JenkinsLogger.defaultLogMessage(projectName);
 		if(preFlightSanityChecks()==false){
 			return false;
 		}
 		
 		this.globalVars = globalVars;
-
+		authCredentials = SkytapUtils.getAuthCredentials(build);
+			
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
@@ -110,8 +116,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		String requestUrl = buildRequestURL(runtimeProjectID, runtimeConfigurationID);
 
 		// create request for skytap API
-		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestUrl,
-				globalVars.getEncodedCredentials());
+		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestUrl,authCredentials);
 
 		// execute request
 		String httpRespBody;
@@ -154,7 +159,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		sb.append("/projects");
 		
 		// create http get
-		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(), globalVars.getEncodedCredentials());
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(), authCredentials);
 		
 		// execute request
 		String response;

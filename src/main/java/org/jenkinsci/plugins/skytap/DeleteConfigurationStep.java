@@ -22,6 +22,9 @@ public class DeleteConfigurationStep extends SkytapAction {
 
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	// the runtime config id will be set one of two ways:
 	// either the user has provided just a config id, so we use it,
@@ -51,6 +54,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
@@ -72,7 +76,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		
 		// create request for Skytap API
 		HttpDelete hd = SkytapUtils.buildHttpDeleteRequest(requestURL,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute request
 		String httpRespBody;

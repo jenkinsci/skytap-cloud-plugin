@@ -34,6 +34,9 @@ public class CreateConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private String runtimeTemplateID;
 	
+	@XStreamOmitField
+	private String authCredentials;
+	
 	// these will be initialized when the step is run
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
@@ -59,6 +62,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateFile);
 		String expConfigFile = SkytapUtils.expandEnvVars(build, configFile);
@@ -80,7 +84,7 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		// create request for Skytap API
 		HttpPost hp = SkytapUtils.buildHttpPostRequest(requestURL,
-				globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// execute request
 		String httpRespBody = "";

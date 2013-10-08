@@ -46,6 +46,9 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	@XStreamOmitField
 	private String runtimeConfigurationID;
+	
+	@XStreamOmitField
+	private String authCredentials;
 
 	@DataBoundConstructor
 	public CreatePublishURLStep(String configurationID,
@@ -79,6 +82,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		}
 		
 		this.globalVars = globalVars;
+		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// expand environment variables where it makes sense
 		String expConfigFile = SkytapUtils.expandEnvVars(build,
@@ -156,7 +160,7 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		// create request
 		HttpPost hp = SkytapUtils.buildHttpPostRequest(reqUrl,
-				this.globalVars.getEncodedCredentials());
+				this.authCredentials);
 
 		// add content to request - vms
 		BasicHttpEntity he = new BasicHttpEntity();
@@ -239,7 +243,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		String reqUrl = "https://cloud.skytap.com/configurations/" + confId;
 
 		HttpGet hg = SkytapUtils.buildHttpGetRequest(reqUrl,
-				this.globalVars.getEncodedCredentials());
+				this.authCredentials);
 		
 		// extract vm ids
 		String response = SkytapUtils.executeHttpRequest(hg);
