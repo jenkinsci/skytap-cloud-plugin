@@ -178,11 +178,18 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 			JenkinsLogger.defaultLogMessage("Shutdown has failed. Attempting to halt VM.");
 
+			// Sleep for a minute to make sure the VM is stable, then we can issue the state change request
+			try {
+				Thread.sleep(60000);
+			} catch (InterruptedException e) {
+				JenkinsLogger.error("Error: " + e.getMessage());
+			}
+
 			sendStateChangeRequest(runtimeConfigurationID, "halted");
 
-			JenkinsLogger.log("Sleeping for 30 seconds.");
+			JenkinsLogger.log("Sleeping for 60 seconds.");
 			try {
-				Thread.sleep(30000);
+				Thread.sleep(60000);
 			} catch (InterruptedException e) {
 				JenkinsLogger.error("Error: " + e.getMessage());
 			}
