@@ -229,7 +229,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		
 		// extract url from response
 		String respUrl = SkytapUtils.getValueFromJsonResponseBody(response,
-				"url");
+				"desktops_url");
 
 		return respUrl;
 
