@@ -146,6 +146,11 @@ public class CreatePublishURLStep extends SkytapAction {
 		JenkinsLogger.log("Publish Set URL: " + pubSetUrl);
 
 		Writer output = null;
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expUrlFile = SkytapUtils.convertSaveFileNameToFullPath(build, expUrlFile);
+		
 		File file = new File(expUrlFile);
 
 		// write url to file

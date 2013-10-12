@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -169,7 +170,7 @@ public class SkytapUtils {
 		return encodedCredential;
 
 	}
-	
+
 	/**
 	 * Retrieves user id and auth key from the project build environment,
 	 * encodes and returns encoded credential string to the user.
@@ -177,16 +178,16 @@ public class SkytapUtils {
 	 * @param AbstractBuild
 	 * @return String
 	 */
-	public static String getAuthCredentials(AbstractBuild build){
-		
+	public static String getAuthCredentials(AbstractBuild build) {
+
 		VariableResolver vr = build.getBuildVariableResolver();
 		String uid = vr.resolve("userId").toString();
 		String authkey = vr.resolve("authKey").toString();
 		String cred = uid + ":" + authkey;
-		
+
 		String encodedCred = encodeAuthCredentials(cred);
 		return encodedCred;
-		
+
 	}
 
 	/**
@@ -466,6 +467,41 @@ public class SkytapUtils {
 	}
 
 	/**
+	 * Prepends the workspace path to a save file name as a default if user has
+	 * not provided a full path.
+	 * 
+	 * @param build
+	 * @param savefile
+	 * 
+	 * @return fullpath
+	 * 
+	 */
+	public static String convertSaveFileNameToFullPath(AbstractBuild build,
+			String savefile) {
+
+		FilenameUtils fu = new FilenameUtils();
+
+		// if its just a filename with no path, prepend workspace dir
+
+		if (fu.getPath(savefile).equals("")) {
+			JenkinsLogger
+					.log("Savefile specified with no path. Defaulting to save in Jenkins workspace.");
+			String workspacePath = SkytapUtils.expandEnvVars(build,
+					"${WORKSPACE}");
+
+			savefile = workspacePath + "/" + savefile;
+			savefile = fu.separatorsToSystem(savefile);
+			return savefile;
+
+		} else {
+
+			return fu.separatorsToSystem(savefile);
+
+		}
+
+	}
+
+	/**
 	 * Executes a Skytap API call in order to get the network id of the network
 	 * whose name was provided by the user.
 	 * 
@@ -496,8 +532,9 @@ public class SkytapUtils {
 		JsonArray networkArray = (JsonArray) je.getAsJsonObject().get(
 				"networks");
 
-		JenkinsLogger.log("Searching configuration's networks for network: " + netName);
-		
+		JenkinsLogger.log("Searching configuration's networks for network: "
+				+ netName);
+
 		Iterator itr = networkArray.iterator();
 		while (itr.hasNext()) {
 			JsonElement networkElement = (JsonElement) itr.next();
@@ -505,13 +542,13 @@ public class SkytapUtils {
 					.get("name").getAsString();
 
 			JenkinsLogger.log("Network Name: " + networkElementName);
-			
+
 			if (networkElementName.equals(netName)) {
 				String networkElementId = networkElement.getAsJsonObject()
 						.get("id").getAsString();
-				
+
 				JenkinsLogger.log("Network Name Matched.");
-				JenkinsLogger.log("Network ID: " + networkElementId);			
+				JenkinsLogger.log("Network ID: " + networkElementId);
 				return networkElementId;
 			}
 

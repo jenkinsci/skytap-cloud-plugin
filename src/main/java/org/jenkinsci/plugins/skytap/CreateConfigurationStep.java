@@ -131,6 +131,10 @@ public class CreateConfigurationStep extends SkytapAction {
 		JsonObject jo = je.getAsJsonObject();
 		jo = je.getAsJsonObject();
 
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expConfigFile = SkytapUtils.convertSaveFileNameToFullPath(build, expConfigFile);
+		
 		Writer output = null;
 		File file = new File(expConfigFile);
 		try {

@@ -33,6 +33,7 @@ import java.util.Iterator;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapAction;
@@ -145,6 +146,12 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		jo = je.getAsJsonObject();
 
 		Writer output = null;
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expTemplateFile = SkytapUtils.convertSaveFileNameToFullPath(build, expTemplateFile);
+		
+		// output to the file system
 		File file = new File(expTemplateFile);
 		
 		try {
