@@ -105,8 +105,11 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
-		expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build, expConfigurationFile);
 
+		if (!expConfigurationFile.equals("")) {
+			expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigurationFile);
+		}
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateSaveFilename);
 		String expTemplateName = SkytapUtils.expandEnvVars(build, templateName);
 		String expTemplateDescription = SkytapUtils.expandEnvVars(build, templateDescription);

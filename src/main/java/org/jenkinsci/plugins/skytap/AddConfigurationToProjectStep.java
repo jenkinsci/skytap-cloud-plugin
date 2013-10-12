@@ -104,8 +104,12 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
-		expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build, expConfigurationFile);
 
+		if (!expConfigurationFile.equals("")) {
+			expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigurationFile);
+		}
+		
 		// get runtime config id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID, expConfigurationFile);

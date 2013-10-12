@@ -87,7 +87,20 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateFile);
 		String expConfigFile = SkytapUtils.expandEnvVars(build, configFile);
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
 
+		if (!expTemplateFile.equals("")) {
+			expTemplateFile = SkytapUtils.convertFileNameToFullPath(build,
+					expTemplateFile);
+		}
+		
+		if (!expConfigFile.equals("")) {
+			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigFile);
+		}
+		
 		JenkinsLogger.log("Template File: " + expTemplateFile);
 		JenkinsLogger.log("Config File: " + expConfigFile);
 

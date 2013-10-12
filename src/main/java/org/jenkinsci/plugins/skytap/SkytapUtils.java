@@ -485,7 +485,7 @@ public class SkytapUtils {
 
 		if (fu.getPath(savefile).equals("")) {
 			JenkinsLogger
-					.log("Savefile specified with no path. Defaulting to save in Jenkins workspace.");
+					.log("File: " + savefile + " was specified without a path. Defaulting path to Jenkins workspace.");
 			String workspacePath = SkytapUtils.expandEnvVars(build,
 					"${WORKSPACE}");
 
@@ -494,9 +494,7 @@ public class SkytapUtils {
 			return savefile;
 
 		} else {
-
 			return fu.separatorsToSystem(savefile);
-
 		}
 
 	}

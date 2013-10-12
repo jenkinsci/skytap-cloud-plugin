@@ -108,6 +108,16 @@ public class CreatePublishURLStep extends SkytapAction {
 		// expand environment variables where it makes sense
 		String expConfigFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+
+		if (!expConfigFile.equals("")) {
+			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigFile);
+		}
+		
+		
 		String expUrlFile = SkytapUtils.expandEnvVars(build, urlSaveFilename);
 
 		// get runtime config id
