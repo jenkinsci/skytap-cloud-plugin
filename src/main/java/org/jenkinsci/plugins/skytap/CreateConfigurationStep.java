@@ -133,7 +133,7 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
-		expConfigFile = SkytapUtils.convertSaveFileNameToFullPath(build, expConfigFile);
+		expConfigFile = SkytapUtils.convertFileNameToFullPath(build, expConfigFile);
 		
 		Writer output = null;
 		File file = new File(expConfigFile);

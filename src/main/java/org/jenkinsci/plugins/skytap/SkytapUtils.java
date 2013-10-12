@@ -476,7 +476,7 @@ public class SkytapUtils {
 	 * @return fullpath
 	 * 
 	 */
-	public static String convertSaveFileNameToFullPath(AbstractBuild build,
+	public static String convertFileNameToFullPath(AbstractBuild build,
 			String savefile) {
 
 		FilenameUtils fu = new FilenameUtils();

@@ -97,6 +97,10 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build, expConfigurationFile);
 
 		// get runtime config id
 		try {

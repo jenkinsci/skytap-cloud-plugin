@@ -102,6 +102,10 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
+		
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build, expConfigurationFile);
 
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateSaveFilename);
 		String expTemplateName = SkytapUtils.expandEnvVars(build, templateName);
@@ -149,7 +153,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
-		expTemplateFile = SkytapUtils.convertSaveFileNameToFullPath(build, expTemplateFile);
+		expTemplateFile = SkytapUtils.convertFileNameToFullPath(build, expTemplateFile);
 		
 		// output to the file system
 		File file = new File(expTemplateFile);
