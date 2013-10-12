@@ -27,13 +27,21 @@
         <j:if test="${instance.permissionOption=='run_and_use'}"><option value="run_and_use" selected="SELECTED" >Run, Suspend</option></j:if>
         <j:if test="${instance.permissionOption!='run_and_use'}"><option value="run_and_use" >Run, Suspend</option></j:if>
     </select>
-</f:entry>
+</f:entry>   
 
-    <f:optionalBlock name="requirePassword" title="Require Password for Access" checked="true" >
+                <f:optionalBlock name="hasPassword" checked="${instance.hasPassword}"
+                                 title="Require Password for Access"
+                                inline="false">
+                                       <f:entry title="Password">
+        								<f:password name="urlPassword" field="urlPassword"/>
+      								</f:entry>
+                                 </f:optionalBlock>
+<!--
+    <f:optionalBlock name="hasPassword" title="Require Password for Access" checked="${instance.hasPassword}" inline="true">
       <f:entry title="Password">
         <f:password name="urlPassword" field="urlPassword"/>
       </f:entry>
     </f:optionalBlock>
-
+-->
 </j:jelly>
 

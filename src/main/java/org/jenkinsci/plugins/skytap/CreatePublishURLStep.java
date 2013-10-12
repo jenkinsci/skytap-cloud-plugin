@@ -53,7 +53,7 @@ public class CreatePublishURLStep extends SkytapAction {
 	@DataBoundConstructor
 	public CreatePublishURLStep(String configurationID,
 			String configurationFile, String urlSaveFilename,
-			String permissionOption, RequirePasswordBlock requirePassword) {
+			String permissionOption, RequirePasswordBlock hasPassword) {
 
 		super("Create Publish URL");
 		this.configurationFile = configurationFile;
@@ -61,12 +61,12 @@ public class CreatePublishURLStep extends SkytapAction {
 		this.urlSaveFilename = urlSaveFilename;
 		this.permissionOption = permissionOption;
 
-		if (requirePassword == null) {
+		if (hasPassword == null) {
 			this.hasPassword = false;
 			this.urlPassword = null;
 		} else {
 			this.hasPassword = true;
-			this.urlPassword = requirePassword.password;
+			this.urlPassword = hasPassword.password;
 		}
 	}
 
@@ -229,7 +229,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		
 		// extract url from response
 		String respUrl = SkytapUtils.getValueFromJsonResponseBody(response,
-				"url");
+				"desktops_url");
 
 		return respUrl;
 
@@ -331,6 +331,10 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	public String getPermissionOption() {
 		return permissionOption;
+	}
+
+	public Boolean isHasPassword() {
+		return hasPassword;
 	}
 
 	public Boolean getHasPassword() {
