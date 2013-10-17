@@ -187,6 +187,14 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			// did it succeed? if so step succeeds, if not retry the state
 			// change again
 			if (currentRunState.equals(targetRunState)) {
+				// Sleep for a few seconds to make sure the Config is stable, then we can exit
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e) {
+					JenkinsLogger.error("Error: " + e.getMessage());
+				}
+
+
 				JenkinsLogger.defaultLogMessage("Runstate transitioned successfully.");
 				JenkinsLogger.defaultLogMessage("----------------------------------------");
 				return true;

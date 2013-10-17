@@ -175,6 +175,14 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 			return false;
 		}
 		
+		// Sleep for a 10 seconds to make sure the Template is stable, then we can exit
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
+		}
+
+
 		JenkinsLogger
 				.defaultLogMessage("Template " + expTemplateName + " successfully created and saved to file: "
 						+ expTemplateFile);

@@ -163,6 +163,14 @@ public class CreateConfigurationStep extends SkytapAction {
 			return false;
 		}
 
+		// Sleep for a a few seconds to make sure the Config is stable, then we can exit
+		try {
+			Thread.sleep(10000);
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
+		}
+
+
 		JenkinsLogger
 				.defaultLogMessage("Configuration successfully created and saved to file: "
 						+ expConfigFile);
