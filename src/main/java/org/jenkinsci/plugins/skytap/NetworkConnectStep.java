@@ -95,8 +95,24 @@ public class NetworkConnectStep extends SkytapAction {
 		String expSourceNetworkConfigurationFile = SkytapUtils.expandEnvVars(
 				build, sourceNetworkConfigurationFile);
 
+		// if user has provided just a source network filename with no path, default to
+		// place it in their Jenkins workspace
+
+		if (!expSourceNetworkConfigurationFile.equals("")) {
+			expSourceNetworkConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
+					expSourceNetworkConfigurationFile);
+		}
+
 		String expTargetNetworkConfigurationFile = SkytapUtils.expandEnvVars(
 				build, targetNetworkConfigurationFile);
+
+		// if user has provided just a target network filename with no path, default to
+		// place it in their Jenkins workspace
+
+		if (!expTargetNetworkConfigurationFile.equals("")) {
+			expTargetNetworkConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
+					expTargetNetworkConfigurationFile);
+		}
 
 		// get runtime config ids for source and target network configurations
 		try {
