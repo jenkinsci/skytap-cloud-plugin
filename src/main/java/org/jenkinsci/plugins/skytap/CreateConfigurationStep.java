@@ -33,6 +33,7 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapAction;
@@ -53,6 +54,10 @@ public class CreateConfigurationStep extends SkytapAction {
 
 	private final String configName;
 	private final String configFile;
+
+	// number of times it will poll Skytap to see if template is busy
+	private static final int NUMBER_OF_RETRIES = 18;
+	private static final int RETRY_INTERVAL_SECONDS = 10;
 
 	@XStreamOmitField
 	private String runtimeTemplateID;
@@ -122,6 +127,14 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		JenkinsLogger.log("Template ID:  " + runtimeTemplateID);
 
+		// check busy state of template - if template doesn't become
+		// available after configured wait time, fail build step
+		if (checkIsTemplateAvailable(runtimeTemplateID) == false) {
+			JenkinsLogger.error("Template ID: " + runtimeTemplateID
+					+ " has not become available yet. Failing build step.");
+			return false;
+		}
+
 		// build request url
 		String requestURL = buildCreateConfigRequestURL(runtimeTemplateID);
 
@@ -160,7 +173,7 @@ public class CreateConfigurationStep extends SkytapAction {
 			String configId = jo.get("id").getAsString();
 
 			// build request url
-			String updateRequestURL = updateConfigNameRequestURL(configId,
+			String updateRequestURL = buildUpdateConfigNameRequestURL(configId,
 					expConfigName);
 
 			// create request for Skytap API
@@ -231,7 +244,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		return true;
 	}
 
-	public String buildCreateConfigRequestURL(String templateId) {
+	private String buildCreateConfigRequestURL(String templateId) {
 
 		JenkinsLogger.log("Building request url ...");
 
@@ -245,7 +258,7 @@ public class CreateConfigurationStep extends SkytapAction {
 
 	}
 
-	public String updateConfigNameRequestURL(String newConfigurationId,
+	private String buildUpdateConfigNameRequestURL(String newConfigurationId,
 			String newConfigurationName) {
 
 		JenkinsLogger.log("Building request url ...");
@@ -260,6 +273,88 @@ public class CreateConfigurationStep extends SkytapAction {
 		return sb.toString();
 
 		// https://cloud.skytap.com/configurations/1156812?name=updatedconfigname
+	}
+
+	/**
+	 * This method verifies the busy status of the template to be used. In the
+	 * event of a busy status, it enters a wait/retry loop.
+	 * 
+	 * @param tempId
+	 */
+	private Boolean checkIsTemplateAvailable(String tempId) {
+
+		JenkinsLogger.log("Checking availability of template with id: "
+				+ tempId);
+
+		// build busy check request
+		String requestURL = buildCheckTemplateURL(tempId);
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(requestURL,
+				this.authCredentials);
+
+		// repeatedly execute request until template is not busy
+		String httpRespBody = "";
+		Boolean templateIsAvailable = false;
+
+		try {
+
+			int numPollingAttempts = 0;
+
+			while (!templateIsAvailable
+					&& (numPollingAttempts < this.NUMBER_OF_RETRIES)) {
+
+				httpRespBody = SkytapUtils.executeHttpRequest(hg);
+
+				// get json object from the response
+				JsonParser parser = new JsonParser();
+				JsonElement je = parser.parse(httpRespBody);
+				JsonObject jo = je.getAsJsonObject();
+
+				// get busy status - if busy in returned
+				// JSON array is 'null', means template is not busy
+
+				if (jo.get("busy").isJsonNull()) {
+					templateIsAvailable = true;
+					JenkinsLogger.log("Template is available.");
+				} else {
+					templateIsAvailable = false;
+					JenkinsLogger.log("Template is busy.");
+
+					// wait before trying again
+					int sleepTime = this.RETRY_INTERVAL_SECONDS;
+					JenkinsLogger
+							.log("Sleeping for " + sleepTime + " seconds.");
+					Thread.sleep(sleepTime * 1000);
+				}
+
+				numPollingAttempts++;
+			}
+
+			return templateIsAvailable;
+
+		} catch (SkytapException ex) {
+			JenkinsLogger.error("Request returned an error: " + ex.getError());
+			JenkinsLogger.error("Failing build step.");
+			return false;
+		} catch (InterruptedException e1) {
+			JenkinsLogger.error(e1.getMessage());
+			return false;
+		}
+
+	}
+
+	private String buildCheckTemplateURL(String id) {
+
+		JenkinsLogger.log("Building request url ...");
+
+		StringBuilder sb = new StringBuilder("https://cloud.skytap.com/");
+		sb.append("templates/");
+		sb.append(id);
+
+		JenkinsLogger.log("Request URL: " + sb.toString());
+		return sb.toString();
+
+		// https://cloud.skytap.com/templates/322249
+
 	}
 
 	/**
