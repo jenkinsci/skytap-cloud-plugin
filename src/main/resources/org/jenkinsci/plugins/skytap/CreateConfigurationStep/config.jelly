@@ -10,6 +10,10 @@
   		<f:textbox />
   	</f:entry>
  
+    <f:entry title="Configuration Name" field="configName" help="Name of the configuration to be created" >
+  		<f:textbox />
+  	</f:entry>   
+  	
     <f:entry title="Configuration Data Save File" field="configFile" help="Full path to the configuration file outputted by Skytap" >
   		<f:textbox />
   	</f:entry>    
