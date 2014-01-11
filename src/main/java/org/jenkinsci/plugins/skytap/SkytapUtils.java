@@ -31,6 +31,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import org.apache.commons.codec.binary.Base64;
@@ -337,6 +338,7 @@ public class SkytapUtils {
 	 * 
 	 * @param hd
 	 * @return
+	 * @throws SkytapException 
 	 */
 	public static String executeHttpDeleteRequest(HttpDelete hd) {
 
@@ -344,23 +346,37 @@ public class SkytapUtils {
 
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpResponse response = null;
-
+		
+		JenkinsLogger.log("Executing Request: " + hd.getRequestLine());
 		try {
+			
 			response = httpclient.execute(hd);
 			String statusLine = response.getStatusLine().toString();
 			JenkinsLogger.log(statusLine);
 			HttpEntity entity = response.getEntity();
 			responseString = EntityUtils.toString(entity, "UTF-8");
+			
+		} catch (HttpResponseException e) {
 
-		} catch (ClientProtocolException e) {
-			JenkinsLogger.error("HTTP Error: " + e.getMessage());
+			JenkinsLogger.error("HTTP Response Code: " + e.getStatusCode());
+
+		} catch (ParseException e) {
+			JenkinsLogger.error(e.getMessage());
 		} catch (IOException e) {
-			JenkinsLogger
-					.error("An error occurred executing the http request: "
-							+ e.getMessage());
+			JenkinsLogger.error(e.getMessage());
+		} finally {
+
+			HttpEntity entity = response.getEntity();
+			try {
+				responseString = EntityUtils.toString(entity, "UTF-8");
+			} catch (IOException e) {
+				// JenkinsLogger.error(e.getMessage());
+			}
+
+			httpclient.getConnectionManager().shutdown();
 		}
 
-		return "";
+		return responseString;
 	}
 
 	/**
