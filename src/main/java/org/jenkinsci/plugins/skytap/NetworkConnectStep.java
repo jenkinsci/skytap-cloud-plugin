@@ -305,8 +305,7 @@ public class NetworkConnectStep extends SkytapAction {
 				JsonObject jo = je.getAsJsonObject();
 
 				// get busy status
-				JenkinsLogger.log(httpRespBody);
-
+				
 				if (jo.get("status").getAsString().equals("not_busy")) {
 					networkIsAvailable = true;
 					JenkinsLogger.log("Target network is available.");
