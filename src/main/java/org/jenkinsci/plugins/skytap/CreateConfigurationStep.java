@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URLEncoder;
 
 import hudson.Extension;
 import hudson.Launcher;
@@ -267,7 +268,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		sb.append("configurations/");
 		sb.append(newConfigurationId);
 		sb.append("?name=");
-		sb.append(newConfigurationName);
+		sb.append(URLEncoder.encode(newConfigurationName));
 
 		JenkinsLogger.log("Request URL: " + sb.toString());
 		return sb.toString();
