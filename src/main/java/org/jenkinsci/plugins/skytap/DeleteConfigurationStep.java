@@ -48,6 +48,10 @@ public class DeleteConfigurationStep extends SkytapAction {
 	private final String configurationID;
 	private final String configurationFile;
 
+	// number of times it will poll Skytap to see if template is busy
+	private static final int NUMBER_OF_RETRIES = 18;
+	private static final int RETRY_INTERVAL_SECONDS = 10;
+
 	// these vars will be initialized when the step is run
 
 	@XStreamOmitField
@@ -96,6 +100,12 @@ public class DeleteConfigurationStep extends SkytapAction {
 			throw e1;
 		}
 
+		try {
+			SkytapUtils.checkResponseForErrors(httpRespBody);
+		}catch (SkytapException e2){
+			throw e2;
+		}
+		
 		// get JSON Array of networks
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(httpRespBody);
@@ -257,42 +267,67 @@ public class DeleteConfigurationStep extends SkytapAction {
 		JenkinsLogger.log("Sending delete request for configuration id "
 				+ this.runtimeConfigurationID);
 
-		// build delete config url
-		String requestURL = buildRequestURL(this.runtimeConfigurationID);
-
-		// create request for Skytap API
-		HttpDelete hd = SkytapUtils.buildHttpDeleteRequest(requestURL,
-				this.authCredentials);
-
-		// execute request
-		String httpRespBody;
-		try {
-			httpRespBody = SkytapUtils.executeHttpRequest(hd);
-		} catch (SkytapException e) {
-			JenkinsLogger.error("Skytap Exception: " + e.getMessage());
+		// attempt to delete config - if the resource is busy,
+		// and doesn't become available after the configured wait time,
+		// fail the build step
+		if (attemptDeleteConfiguration(runtimeConfigurationID) == false) {
+			JenkinsLogger.error("Configuration ID: " + runtimeConfigurationID
+					+ " could not be deleted. Failing build step.");
 			return false;
 		}
-
-		try {
-			SkytapUtils.checkResponseForErrors(httpRespBody);
-		} catch (SkytapException ex) {
-			JenkinsLogger.error("Request returned an error: " + ex.getError());
-			JenkinsLogger.error("Failing build step.");
-			return false;
-		} catch (IllegalStateException ex) {
-			// if there are no errors in the response body this exception will
-			// result
-		}
-
-		JenkinsLogger.log("");
-		JenkinsLogger.log(httpRespBody);
-		JenkinsLogger.log("");
 
 		JenkinsLogger.defaultLogMessage("Configuration "
 				+ runtimeConfigurationID + " was successfully deleted.");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		return true;
+
+	}
+
+	private Boolean attemptDeleteConfiguration(String confId) {
+
+		// build delete config url
+		String requestURL = buildRequestURL(confId);
+
+		// create request for Skytap API
+		HttpDelete hd = SkytapUtils.buildHttpDeleteRequest(requestURL,
+				this.authCredentials);
+
+		// repeat request until configuration
+		// becomes available and can be deleted
+		String httpRespBody = "";
+		Boolean configDeletedSuccessfully = false;
+
+		int pollAttempts = 0;
+
+		while (!configDeletedSuccessfully
+				&& (pollAttempts < this.NUMBER_OF_RETRIES)) {
+
+			// wait for a time before attempting delete
+			int sleepTime = this.RETRY_INTERVAL_SECONDS;
+			JenkinsLogger.log("Sleeping for " + sleepTime + " seconds.");
+			try {
+				Thread.sleep(sleepTime * 1000);
+			} catch (InterruptedException e1) {
+				JenkinsLogger.error(e1.getMessage());
+				return false;
+			}
+
+			httpRespBody = SkytapUtils.executeHttpDeleteRequest(hd);
+
+			if (httpRespBody.equals("")) {
+				JenkinsLogger
+						.error("An error occurred while attempting to delete "
+								+ confId);
+				pollAttempts++;
+
+			} else {
+				configDeletedSuccessfully = true;
+			}
+
+		}
+
+		return configDeletedSuccessfully;
 
 	}
 

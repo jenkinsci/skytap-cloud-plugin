@@ -348,6 +348,7 @@ public class SkytapUtils {
 		HttpResponse response = null;
 		
 		JenkinsLogger.log("Executing Request: " + hd.getRequestLine());
+		
 		try {
 			
 			response = httpclient.execute(hd);
@@ -396,7 +397,10 @@ public class SkytapUtils {
 
 		if (je.isJsonNull()) {
 			return;
+		} else if(je.isJsonArray()) {
+			return;
 		} else {
+
 			jo = je.getAsJsonObject();
 		}
 
@@ -481,6 +485,54 @@ public class SkytapUtils {
 
 		return runtimeID;
 	}
+	
+	/**
+	 * Makes call to skytap to retrieve the id
+	 * of a named project.
+	 * 
+	 * @param projName
+	 * @param authCredentials
+	 * @return projId
+	 */
+	public static String getProjectID(String projName, String authCredentials) {
+		
+		// build url
+		StringBuilder sb = new StringBuilder("https://cloud.skytap.com");
+		sb.append("/projects");
+		
+		// create http get
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(), authCredentials);
+		
+		// execute request
+		String response;
+		try {
+			response = SkytapUtils.executeHttpRequest(hg);
+		} catch (SkytapException e) {
+			JenkinsLogger.error("Skytap Exception: " + e.getMessage());
+			return "";
+		}
+		
+		// response string will be a json array of all projects		
+		JsonParser parser = new JsonParser();
+		JsonElement je = parser.parse(response);
+		JsonArray ja = je.getAsJsonArray();
+
+	     Iterator itr = ja.iterator();
+	      while(itr.hasNext()) {
+	         JsonElement projElement = (JsonElement) itr.next();
+	         String projElementName = projElement.getAsJsonObject().get("name").getAsString();
+	         
+	         if(projElementName.equals(projName)){
+	        	 String projElementId = projElement.getAsJsonObject().get("id").getAsString();
+	        	 return projElementId;
+	         }
+
+	      }
+		
+	    JenkinsLogger.error("No project matching name \"" + projName + "\"" + " was found.");
+		return "";
+	}
+
 
 	/**
 	 * Prepends the workspace path to a save file name as a default if user has

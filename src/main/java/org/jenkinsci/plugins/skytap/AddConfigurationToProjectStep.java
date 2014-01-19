@@ -128,7 +128,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 			
 		// otherwise retrieve the id from name provided
 		if(!getProjectName().equals("")){
-			runtimeProjectID = getProjectID(projectName);
+			runtimeProjectID = SkytapUtils.getProjectID(projectName, authCredentials);
 		}
 		
 		if(runtimeProjectID.equals("")){
@@ -174,51 +174,6 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		return true;
 	}
 
-	/**
-	 * Makes call to skytap to retrieve the id
-	 * of a named project.
-	 * 
-	 * @param projName
-	 * @return projId
-	 */
-	private String getProjectID(String projName) {
-		
-		// build url
-		StringBuilder sb = new StringBuilder("https://cloud.skytap.com");
-		sb.append("/projects");
-		
-		// create http get
-		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(), authCredentials);
-		
-		// execute request
-		String response;
-		try {
-			response = SkytapUtils.executeHttpRequest(hg);
-		} catch (SkytapException e) {
-			JenkinsLogger.error("Skytap Exception: " + e.getMessage());
-			return "";
-		}
-		
-		// response string will be a json array of all projects		
-		JsonParser parser = new JsonParser();
-		JsonElement je = parser.parse(response);
-		JsonArray ja = je.getAsJsonArray();
-
-	     Iterator itr = ja.iterator();
-	      while(itr.hasNext()) {
-	         JsonElement projElement = (JsonElement) itr.next();
-	         String projElementName = projElement.getAsJsonObject().get("name").getAsString();
-	         
-	         if(projElementName.equals(projName)){
-	        	 String projElementId = projElement.getAsJsonObject().get("id").getAsString();
-	        	 return projElementId;
-	         }
-
-	      }
-		
-	    JenkinsLogger.error("No project matching name \"" + projName + "\"" + " was found.");
-		return "";
-	}
 	
 	private String buildRequestURL(String projId, String configId) {
 
