@@ -1,0 +1,21 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  	<f:entry title="Template ID" field="templateID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="Template File" field="templateFile" >
+  		<f:textbox />
+  	</f:entry>
+  	
+  	<f:entry title="Project ID" field="projectID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="Project Name" field="projectName" >
+  		<f:textbox />
+  	</f:entry>
+   
+</j:jelly>
