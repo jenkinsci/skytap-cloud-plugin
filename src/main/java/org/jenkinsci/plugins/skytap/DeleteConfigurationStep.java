@@ -310,7 +310,6 @@ public class DeleteConfigurationStep extends SkytapAction {
 				Thread.sleep(sleepTime * 1000);
 			} catch (InterruptedException e1) {
 				JenkinsLogger.error(e1.getMessage());
-				return false;
 			}
 
 			httpRespBody = SkytapUtils.executeHttpDeleteRequest(hd);
@@ -328,7 +327,6 @@ public class DeleteConfigurationStep extends SkytapAction {
 		}
 
 		return configDeletedSuccessfully;
-
 	}
 
 	private String buildRequestURL(String configId) {
