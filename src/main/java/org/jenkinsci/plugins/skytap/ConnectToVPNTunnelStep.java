@@ -53,6 +53,10 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 	private final String configurationNetworkName;
 	private final String vpnID;
 
+	// number of times it will poll Skytap to see if template is busy
+	private static final int NUMBER_OF_RETRIES = 18;
+	private static final int RETRY_INTERVAL_SECONDS = 10;
+
 	// these vars will be initialized when the step is run
 
 	@XStreamOmitField
@@ -122,16 +126,16 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		try {
 			SkytapUtils.checkResponseForErrors(httpRespBody);
 		} catch (SkytapException e) {
-			
+
 			// this is what we expect normally - return isconnected=false
-			if(e.getMessage().contains("Configuration not attached to VPN")){
+			if (e.getMessage().contains("Configuration not attached to VPN")) {
 				return isConnected;
-			}else{
+			} else {
 				throw e;
 			}
-			
+
 		}
-		
+
 		// get json object from response
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(httpRespBody);
@@ -223,61 +227,138 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 			JenkinsLogger.log("Network is already connected to VPN: " + vpnID
 					+ ". Passing build step.");
 			return true;
-		}else {
-			JenkinsLogger.log("Network is not currently connected to VPN: " + vpnID);
+		} else {
+			JenkinsLogger.log("Network is not currently connected to VPN: "
+					+ vpnID);
 		}
 
 		// attach the VPN to the configuration
 		JenkinsLogger.log("Attaching VPN to Configuration ...");
-		String attachResponse = this.attachVPNToConfiguration(
-				runtimeConfigurationID, runtimeNetworkID, vpnID);
 
-		JenkinsLogger.log("Attach Response: " + attachResponse);
+		if (executeVPNAttach(runtimeConfigurationID, runtimeNetworkID, vpnID)) {
 
-		if (attachResponse.equals("") || attachResponse == null) {
-			JenkinsLogger.error("Response was null or empty.");
+			JenkinsLogger.log("VPN with ID " + vpnID
+					+ " successfully attached to Network with ID "
+					+ runtimeNetworkID + ".");
+
+		} else {
+
+			JenkinsLogger.error("VPN attach has failed. Failing build step.");
 			return false;
-		}
 
-		// check response for errors
-		try {
-			SkytapUtils.checkResponseForErrors(attachResponse);
-		} catch (SkytapException e) {
-			JenkinsLogger.error("Skytap Error: " + e.getError());
-			return false;
 		}
-
-		JenkinsLogger.log("VPN with ID " + vpnID
-				+ " successfully attached to Network with ID "
-				+ runtimeNetworkID + ".");
 
 		// connect the configuration to the VPN
 		JenkinsLogger.log("Connecting VPN to Configuration ...");
-		String connectResponse = this.connectVPNToConfiguration(
-				runtimeConfigurationID, runtimeNetworkID, vpnID);
 
-		JenkinsLogger.log("Connect Response: " + connectResponse);
+		if (executeVPNConnect(runtimeConfigurationID, runtimeNetworkID, vpnID)) {
 
-		if (connectResponse.equals("") || connectResponse == null) {
-			JenkinsLogger.error("Response was null or empty.");
+			JenkinsLogger.defaultLogMessage("VPN with ID " + vpnID
+					+ " successfully connected to Network with ID "
+					+ runtimeNetworkID + ".");
+			
+		} else {
+			JenkinsLogger.error("VPN connect has failed. Failing build step.");
 			return false;
 		}
-
-		// check response for errors
-		try {
-			SkytapUtils.checkResponseForErrors(connectResponse);
-		} catch (SkytapException e) {
-			JenkinsLogger.error("Skytap Error: " + e.getError());
-			return false;
-		}
-
-		JenkinsLogger.defaultLogMessage("VPN with ID " + vpnID
-				+ " successfully connected to Network with ID "
-				+ runtimeNetworkID + ".");
 
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		return true;
+	}
+
+	private Boolean executeVPNConnect(String confId, String netId, String vpnId) {
+
+		String connectResponse = "";
+		Boolean vpnConnectedSuccessfully = false;
+		int pollAttempts = 0;
+
+		while (!vpnConnectedSuccessfully
+				&& pollAttempts < this.NUMBER_OF_RETRIES) {
+
+			connectResponse = this.connectVPNToConfiguration(confId, netId,
+					vpnId);
+
+			JenkinsLogger.log("Connect Response: " + connectResponse);
+
+			if (connectResponse.equals("") || connectResponse == null) {
+				JenkinsLogger.error("Response was null or empty.");
+			}
+
+			// check response for errors
+			try {
+				SkytapUtils.checkResponseForErrors(connectResponse);
+
+				// no errors.. then connect succeeded.
+				vpnConnectedSuccessfully = true;
+
+			} catch (SkytapException e) {
+				JenkinsLogger.error("Skytap Error: " + e.getError());
+
+				// wait before trying again
+				int sleepTime = this.RETRY_INTERVAL_SECONDS;
+				JenkinsLogger.log("Sleeping for " + sleepTime + " seconds.");
+
+				try {
+					Thread.sleep(sleepTime * 1000);
+				} catch (InterruptedException e1) {
+					JenkinsLogger.error(e1.getMessage());
+				}
+			}
+
+			pollAttempts++;
+
+		}
+
+		return vpnConnectedSuccessfully;
+	}
+
+	private Boolean executeVPNAttach(String confId, String netId, String vpnId) {
+
+		Boolean vpnAttachedSuccessfully = false;
+		int pollAttempts = 0;
+		String attachResponse = "";
+
+		while (!vpnAttachedSuccessfully
+				&& pollAttempts < this.NUMBER_OF_RETRIES) {
+
+			attachResponse = this
+					.attachVPNToConfiguration(confId, netId, vpnId);
+
+			JenkinsLogger.log("Attach Response: " + attachResponse);
+
+			if (attachResponse.equals("") || attachResponse == null) {
+				JenkinsLogger.error("Response was null or empty.");
+			} else {
+
+				try {
+					SkytapUtils.checkResponseForErrors(attachResponse);
+
+					// if no exception is thrown, attach succeeded
+					vpnAttachedSuccessfully = true;
+
+				} catch (SkytapException e) {
+					JenkinsLogger.error("Skytap Error: " + e.getError());
+
+					// wait before trying again
+					int sleepTime = this.RETRY_INTERVAL_SECONDS;
+					JenkinsLogger
+							.log("Sleeping for " + sleepTime + " seconds.");
+
+					try {
+						Thread.sleep(sleepTime * 1000);
+					} catch (InterruptedException e1) {
+						JenkinsLogger.error(e1.getMessage());
+					}
+
+				}
+
+			}
+
+			pollAttempts++;
+
+		}
+		return vpnAttachedSuccessfully;
 	}
 
 	private String connectVPNToConfiguration(String confId, String networkId,
