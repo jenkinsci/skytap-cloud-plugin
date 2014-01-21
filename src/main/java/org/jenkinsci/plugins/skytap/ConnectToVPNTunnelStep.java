@@ -262,6 +262,16 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 			return false;
 		}
 
+		// pause before exiting to allow VPN and config to settle down
+		int sleepTime = this.RETRY_INTERVAL_SECONDS;
+		JenkinsLogger.log("Pausing for " + sleepTime + " seconds.");
+
+		try {
+			Thread.sleep(sleepTime * 1000);
+		} catch (InterruptedException e1) {
+			JenkinsLogger.error(e1.getMessage());
+		}
+
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		return true;
