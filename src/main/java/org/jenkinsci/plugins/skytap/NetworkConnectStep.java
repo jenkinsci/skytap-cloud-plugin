@@ -179,11 +179,11 @@ public class NetworkConnectStep extends SkytapAction {
 		// if busy, enter wait/retry loop
 		// if the check returns false after multiple waits/retries, fail the
 		// build step
-		// if(!checkIsTargetNetworkAvailable(runtimeTargetNetworkConfigurationID,
-		// runtimeTargetNetworkID)){
-		// JenkinsLogger.error("Target network has not become available. Failing build step.");
-		// return false;
-		// }
+		 if(!checkIsTargetNetworkAvailable(runtimeTargetNetworkConfigurationID,
+		 runtimeTargetNetworkID)){
+		 JenkinsLogger.error("Target network has not become available. Failing build step.");
+		 return false;
+		 }
 
 		// connect the two networks
 		try {
@@ -305,6 +305,15 @@ public class NetworkConnectStep extends SkytapAction {
 				JsonObject jo = je.getAsJsonObject();
 
 				// get busy status
+				
+				// first check if the status field does not even exist
+				// if that is the case, the network is not connected to
+				// anything and therefore not busy
+				
+				if (jo.get("status") == null){
+					JenkinsLogger.log("Target network is available.");
+					return true;
+				}
 				
 				if (jo.get("status").getAsString().equals("not_busy")) {
 					networkIsAvailable = true;
