@@ -29,10 +29,13 @@ import hudson.util.VariableResolver;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
@@ -41,6 +44,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+//
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+//
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -295,37 +303,84 @@ public class SkytapUtils {
 	public static String executeHttpRequest(HttpRequestBase hr)
 			throws SkytapException {
 
-		HttpClient httpclient = new DefaultHttpClient();
+		boolean retryHttpRequest = true;
+		int retryCount = 1;
 		String responseString = "";
-		HttpResponse response = null;
-
-		try {
-
-			JenkinsLogger.log("Executing Request: " + hr.getRequestLine());
-			response = httpclient.execute(hr);
-
-			JenkinsLogger.log(response.getStatusLine().toString());
-			HttpEntity entity = response.getEntity();
-			responseString = EntityUtils.toString(entity, "UTF-8");
-
-		} catch (HttpResponseException e) {
-
-			JenkinsLogger.error("HTTP Response Code: " + e.getStatusCode());
-
-		} catch (ParseException e) {
-			JenkinsLogger.error(e.getMessage());
-		} catch (IOException e) {
-			JenkinsLogger.error(e.getMessage());
-		} finally {
-
-			HttpEntity entity = response.getEntity();
+		while (retryHttpRequest == true) {
+			HttpClient httpclient = new DefaultHttpClient();
+			//
+			// Set timeouts for httpclient requests to 60 seconds
+			//
+			HttpConnectionParams.setConnectionTimeout(httpclient.getParams(),60000);
+			HttpConnectionParams.setSoTimeout(httpclient.getParams(),60000);
+			//
+			responseString = "";
+			HttpResponse response = null;
 			try {
-				responseString = EntityUtils.toString(entity, "UTF-8");
-			} catch (IOException e) {
-				// JenkinsLogger.error(e.getMessage());
-			}
+				Date myDate = new Date();
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH-mm-ss");
+				String myDateString = sdf.format(myDate);
 
-			httpclient.getConnectionManager().shutdown();
+				JenkinsLogger.log(myDateString + "\n" + "Executing Request: " + hr.getRequestLine());
+				response = httpclient.execute(hr);
+
+				String responseStatusLine = response.getStatusLine().toString();
+				if (responseStatusLine.contains("423 Locked")) {
+					retryCount = retryCount + 1;
+					if (retryCount > 5) {
+						retryHttpRequest = false;
+						JenkinsLogger.error("Object busy too long - giving up.");
+					} else {
+						JenkinsLogger.log("Object busy - Retrying...");
+						try {
+							Thread.sleep(15000);
+						} catch (InterruptedException e1) {
+							JenkinsLogger.error(e1.getMessage());
+						}
+					}
+				} else {
+					JenkinsLogger.log(response.getStatusLine().toString());
+					HttpEntity entity = response.getEntity();
+					responseString = EntityUtils.toString(entity, "UTF-8");
+					retryHttpRequest = false;
+				}
+
+			} catch (HttpResponseException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error("HTTP Response Code: " + e.getStatusCode());
+
+			} catch (ParseException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error(e.getMessage());
+
+			} catch (InterruptedIOException e) {
+				Date myDate = new Date();
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH-mm-ss");
+				String myDateString = sdf.format(myDate);
+
+				retryCount = retryCount + 1;
+				if (retryCount > 5) {
+					retryHttpRequest = false;
+					JenkinsLogger.error("API Timeout - giving up. " + e.getMessage());
+				} else {
+					JenkinsLogger.log(myDateString + "\n" + e.getMessage() + "\n" + "API Timeout - Retrying...");
+				}
+			} catch (IOException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error(e.getMessage());
+			} finally {
+				if (response != null) {
+					// response will be null if this is a timeout retry
+					HttpEntity entity = response.getEntity();
+					try {
+						responseString = EntityUtils.toString(entity, "UTF-8");
+					} catch (IOException e) {
+						// JenkinsLogger.error(e.getMessage());
+					}
+				}
+
+				httpclient.getConnectionManager().shutdown();
+			}
 		}
 
 		return responseString;
