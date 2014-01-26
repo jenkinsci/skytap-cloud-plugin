@@ -465,7 +465,7 @@ public class SkytapUtils {
 		if (!(jo.has("error") || jo.has("errors"))) {
 			return;
 		}
-
+		
 		// handle case where skytap returns an array of errors
 		if (jo.has("errors")) {
 
@@ -492,6 +492,18 @@ public class SkytapUtils {
 			// handle case where 'error' element is null value
 			if (jo.get("error").isJsonNull()) {
 				return;
+			}
+			
+			// handle case where 'error' element is a boolean
+			if (jo.get("error").isJsonPrimitive()){
+				
+				Boolean hasError = jo.get("error").getAsBoolean();
+				
+				// if its false, no error, all is good
+				if(!hasError){
+					return;
+				}
+				
 			}
 
 			// handle case where 'error' element is a quoted string
