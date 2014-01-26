@@ -338,7 +338,12 @@ public class SkytapUtils {
 							JenkinsLogger.error(e1.getMessage());
 						}
 					}
-				} else {
+				} else if (responseStatusLine.contains("409 Conflict")){
+				
+				throw new SkytapException(responseStatusLine);
+				
+				}else {
+			
 					JenkinsLogger.log(response.getStatusLine().toString());
 					HttpEntity entity = response.getEntity();
 					responseString = EntityUtils.toString(entity, "UTF-8");
