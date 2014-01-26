@@ -146,8 +146,6 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		return isConnected;
 	}
 
-	// this.attachVPNToConfiguration(runtimeConfigurationID, runtimeNetworkID,
-	// vpnID);
 	public Boolean executeStep(AbstractBuild build,
 			SkytapGlobalVariables globalVars) {
 
