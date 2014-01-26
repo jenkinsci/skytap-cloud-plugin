@@ -311,17 +311,20 @@ public class SkytapUtils {
 			//
 			// Set timeouts for httpclient requests to 60 seconds
 			//
-			HttpConnectionParams.setConnectionTimeout(httpclient.getParams(),60000);
-			HttpConnectionParams.setSoTimeout(httpclient.getParams(),60000);
+			HttpConnectionParams.setConnectionTimeout(httpclient.getParams(),
+					60000);
+			HttpConnectionParams.setSoTimeout(httpclient.getParams(), 60000);
 			//
 			responseString = "";
 			HttpResponse response = null;
 			try {
 				Date myDate = new Date();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH-mm-ss");
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd:HH-mm-ss");
 				String myDateString = sdf.format(myDate);
 
-				JenkinsLogger.log(myDateString + "\n" + "Executing Request: " + hr.getRequestLine());
+				JenkinsLogger.log(myDateString + "\n" + "Executing Request: "
+						+ hr.getRequestLine());
 				response = httpclient.execute(hr);
 
 				String responseStatusLine = response.getStatusLine().toString();
@@ -329,7 +332,8 @@ public class SkytapUtils {
 					retryCount = retryCount + 1;
 					if (retryCount > 5) {
 						retryHttpRequest = false;
-						JenkinsLogger.error("Object busy too long - giving up.");
+						JenkinsLogger
+								.error("Object busy too long - giving up.");
 					} else {
 						JenkinsLogger.log("Object busy - Retrying...");
 						try {
@@ -338,12 +342,12 @@ public class SkytapUtils {
 							JenkinsLogger.error(e1.getMessage());
 						}
 					}
-				} else if (responseStatusLine.contains("409 Conflict")){
-				
-				throw new SkytapException(responseStatusLine);
-				
-				}else {
-			
+				} else if (responseStatusLine.contains("409 Conflict")) {
+
+					throw new SkytapException(responseStatusLine);
+
+				} else {
+
 					JenkinsLogger.log(response.getStatusLine().toString());
 					HttpEntity entity = response.getEntity();
 					responseString = EntityUtils.toString(entity, "UTF-8");
@@ -360,15 +364,18 @@ public class SkytapUtils {
 
 			} catch (InterruptedIOException e) {
 				Date myDate = new Date();
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd:HH-mm-ss");
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd:HH-mm-ss");
 				String myDateString = sdf.format(myDate);
 
 				retryCount = retryCount + 1;
 				if (retryCount > 5) {
 					retryHttpRequest = false;
-					JenkinsLogger.error("API Timeout - giving up. " + e.getMessage());
+					JenkinsLogger.error("API Timeout - giving up. "
+							+ e.getMessage());
 				} else {
-					JenkinsLogger.log(myDateString + "\n" + e.getMessage() + "\n" + "API Timeout - Retrying...");
+					JenkinsLogger.log(myDateString + "\n" + e.getMessage()
+							+ "\n" + "API Timeout - Retrying...");
 				}
 			} catch (IOException e) {
 				retryHttpRequest = false;
@@ -398,7 +405,7 @@ public class SkytapUtils {
 	 * 
 	 * @param hd
 	 * @return
-	 * @throws SkytapException 
+	 * @throws SkytapException
 	 */
 	public static String executeHttpDeleteRequest(HttpDelete hd) {
 
@@ -406,17 +413,17 @@ public class SkytapUtils {
 
 		HttpClient httpclient = new DefaultHttpClient();
 		HttpResponse response = null;
-		
+
 		JenkinsLogger.log("Executing Request: " + hd.getRequestLine());
-		
+
 		try {
-			
+
 			response = httpclient.execute(hd);
 			String statusLine = response.getStatusLine().toString();
 			JenkinsLogger.log(statusLine);
 			HttpEntity entity = response.getEntity();
 			responseString = EntityUtils.toString(entity, "UTF-8");
-			
+
 		} catch (HttpResponseException e) {
 
 			JenkinsLogger.error("HTTP Response Code: " + e.getStatusCode());
@@ -457,11 +464,8 @@ public class SkytapUtils {
 
 		if (je.isJsonNull()) {
 			return;
-		} else if(je.isJsonArray()) {
+		} else if (je.isJsonArray()) {
 			return;
-		} else {
-
-			jo = je.getAsJsonObject();
 		}
 
 		je = parser.parse(response);
@@ -470,7 +474,7 @@ public class SkytapUtils {
 		if (!(jo.has("error") || jo.has("errors"))) {
 			return;
 		}
-		
+
 		// handle case where skytap returns an array of errors
 		if (jo.has("errors")) {
 
@@ -498,24 +502,25 @@ public class SkytapUtils {
 			if (jo.get("error").isJsonNull()) {
 				return;
 			}
-			
-			// handle case where 'error' element is a boolean
-			if (jo.get("error").isJsonPrimitive()){
-				
-				Boolean hasError = jo.get("error").getAsBoolean();
-				
-				// if its false, no error, all is good
-				if(!hasError){
+
+			// handle case where 'error' element is a boolean OR quoted string
+			if (jo.get("error").isJsonPrimitive()) {
+
+				String error = jo.get("error").getAsString();
+
+				// handle boolean cases
+				if (error.equals("false")) {
 					return;
 				}
-				
-			}
 
-			// handle case where 'error' element is a quoted string
-			String error = jo.get("error").getAsString();
+				// TODO: find out where the error msg would be in this case
+				if (error.equals("true")) {
+					throw new SkytapException(error);
+				}
 
-			if (!error.equals("")) {
-				throw new SkytapException(error);
+				if (!error.equals("")) {
+					throw new SkytapException(error);
+				}
 			}
 
 		}
@@ -557,24 +562,24 @@ public class SkytapUtils {
 
 		return runtimeID;
 	}
-	
+
 	/**
-	 * Makes call to skytap to retrieve the id
-	 * of a named project.
+	 * Makes call to skytap to retrieve the id of a named project.
 	 * 
 	 * @param projName
 	 * @param authCredentials
 	 * @return projId
 	 */
 	public static String getProjectID(String projName, String authCredentials) {
-		
+
 		// build url
 		StringBuilder sb = new StringBuilder("https://cloud.skytap.com");
 		sb.append("/projects");
-		
+
 		// create http get
-		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(), authCredentials);
-		
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(),
+				authCredentials);
+
 		// execute request
 		String response;
 		try {
@@ -583,28 +588,30 @@ public class SkytapUtils {
 			JenkinsLogger.error("Skytap Exception: " + e.getMessage());
 			return "";
 		}
-		
-		// response string will be a json array of all projects		
+
+		// response string will be a json array of all projects
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(response);
 		JsonArray ja = je.getAsJsonArray();
 
-	     Iterator itr = ja.iterator();
-	      while(itr.hasNext()) {
-	         JsonElement projElement = (JsonElement) itr.next();
-	         String projElementName = projElement.getAsJsonObject().get("name").getAsString();
-	         
-	         if(projElementName.equals(projName)){
-	        	 String projElementId = projElement.getAsJsonObject().get("id").getAsString();
-	        	 return projElementId;
-	         }
+		Iterator itr = ja.iterator();
+		while (itr.hasNext()) {
+			JsonElement projElement = (JsonElement) itr.next();
+			String projElementName = projElement.getAsJsonObject().get("name")
+					.getAsString();
 
-	      }
-		
-	    JenkinsLogger.error("No project matching name \"" + projName + "\"" + " was found.");
+			if (projElementName.equals(projName)) {
+				String projElementId = projElement.getAsJsonObject().get("id")
+						.getAsString();
+				return projElementId;
+			}
+
+		}
+
+		JenkinsLogger.error("No project matching name \"" + projName + "\""
+				+ " was found.");
 		return "";
 	}
-
 
 	/**
 	 * Prepends the workspace path to a save file name as a default if user has
@@ -625,7 +632,9 @@ public class SkytapUtils {
 
 		if (fu.getPath(savefile).equals("")) {
 			JenkinsLogger
-					.log("File: " + savefile + " was specified without a path. Defaulting path to Jenkins workspace.");
+					.log("File: "
+							+ savefile
+							+ " was specified without a path. Defaulting path to Jenkins workspace.");
 			String workspacePath = SkytapUtils.expandEnvVars(build,
 					"${WORKSPACE}");
 
