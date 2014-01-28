@@ -68,9 +68,12 @@ public class AddTemplateToProjectStep extends SkytapAction {
 		// reset step parameters with env vars resolved at runtime
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateFile);
 		
+		// if no path was provided (just filename), convert to jenkins workspace path
+		expTemplateFile = SkytapUtils.convertFileNameToFullPath(build, expTemplateFile);
+		
 		// get runtime template id
 		try {
-			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID, templateFile);
+			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID, expTemplateFile);
 		}catch (FileNotFoundException e){
 			JenkinsLogger.error("Error obtaining runtime id: " + e.getMessage());
 			return false;
