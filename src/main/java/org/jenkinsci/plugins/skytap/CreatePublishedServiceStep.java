@@ -82,13 +82,38 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
+
+		// reset step parameters with env vars resolved at runtime
+		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
+				configurationFile);
+
+		// if no path was provided (just filename), convert to jenkins workspace
+		// path
+		if (!expConfigurationFile.isEmpty()) {
+			expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigurationFile);
+		}
+
 		// get runtime config id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
-					configurationFile);
+					expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving configuration id: "
 					+ e.getMessage());
+			return false;
+		}
+
+		// get runtime VM id
+		try {
+
+			if (!vmName.isEmpty()) {
+				runtimeVMID = SkytapUtils.getVMIDFromName(
+						runtimeConfigurationID, vmName, authCredentials);
+			}
+
+		} catch (SkytapException e1) {
+			JenkinsLogger.error(e1.getMessage());
 			return false;
 		}
 
@@ -200,18 +225,8 @@ public class CreatePublishedServiceStep extends SkytapAction {
 		sb.append("configurations/");
 		sb.append(runtimeConfigurationID);
 
-		// adjust url depending on whether user provided vm name or id
-		if (vmID.isEmpty()) {
-
-			sb.append("/vms?vm_name=");
-			sb.append(URLEncoder.encode(vmName));
-
-		} else {
-
-			sb.append("/vms/");
-			sb.append(vmID);
-
-		}
+		sb.append("/vms/");
+		sb.append(runtimeVMID);
 
 		sb.append("/interfaces/");
 		sb.append(intId);

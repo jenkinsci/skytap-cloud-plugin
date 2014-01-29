@@ -66,52 +66,6 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		this.publishedServiceFile = publishedServiceFile;
 
 	}
-	
-	private String getVMIDFromName(String vname) throws SkytapException {
-		
-		// build url to retrieve vm object by name, so we can extract the id
-		String getVmIdURL = buildGetVmsUrl(runtimeConfigurationID);
-		
-		// create request
-		HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
-		
-		// execute request
-		String hgResponse = "";
-		
-		hgResponse = SkytapUtils.executeHttpRequest(hg);
-
-		// check for errors
-		SkytapUtils.checkResponseForErrors(hgResponse);
-		
-		// find vm that matches name
-		
-		JsonParser parser = new JsonParser();
-		JsonElement je = parser.parse(hgResponse);
-		JsonArray vmArray = je.getAsJsonArray();
-		
-		JenkinsLogger.log("Iterating through vm array to match name: " + vname);
-		
-		Iterator iter = vmArray.iterator();
-		
-		while(iter.hasNext()){
-			JsonObject vmObject = (JsonObject)iter.next();
-			JenkinsLogger.log(vmObject.toString());
-			String currentName = vmObject.get("name").getAsString();
-			JenkinsLogger.log("Found VM with name: " + currentName);
-			
-			if(currentName.equals(vname)){
-				JenkinsLogger.log("Name matched. Retrieving vm id.");
-				
-				String vid = vmObject.get("id").getAsString();
-				return vid;
-			}
-			
-		}
-		
-		// if we failed to match the name throw an exception
-		throw new SkytapException("No vms were found matching name: " + vname);
-		
-	}
 
 	public Boolean executeStep(AbstractBuild build,
 			SkytapGlobalVariables globalVars) {
@@ -144,7 +98,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		if(!vmName.isEmpty()){
 		
 			try {
-				this.runtimeVMID = getVMIDFromName(vmName);
+				this.runtimeVMID = SkytapUtils.getVMIDFromName(runtimeConfigurationID, vmName, authCredentials);
 			} catch (SkytapException e) {
 				JenkinsLogger.error(e.getMessage());
 				return false;
@@ -248,28 +202,6 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		return true;
 	}
 
-	
-	
-	/**
-	 * Builds the url that will be used to retrieve
-	 * all of the vms. 
-	 * 
-	 * @param vmName
-	 * @return
-	 */
-	private String buildGetVmsUrl(String cid){
-		
-		JenkinsLogger.log("Building request url ...");
-
-		StringBuilder sb = new StringBuilder("https://cloud.skytap.com/");
-		sb.append("configurations/");
-		sb.append(cid);
-		sb.append("/vms");
-		
-		return sb.toString();
-	
-	}
-	
 	private String buildListPublishedServiceURL(String vid, String intId, int port) {
 
 		JenkinsLogger.log("Building request url ...");
