@@ -65,11 +65,15 @@ public class AddTemplateToProjectStep extends SkytapAction {
 		this.globalVars = globalVars;
 		authCredentials = SkytapUtils.getAuthCredentials(build);
 		
+	
 		// reset step parameters with env vars resolved at runtime
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateFile);
 		
 		// if no path was provided (just filename), convert to jenkins workspace path
-		expTemplateFile = SkytapUtils.convertFileNameToFullPath(build, expTemplateFile);
+		if (!expTemplateFile.isEmpty()) {
+			expTemplateFile = SkytapUtils.convertFileNameToFullPath(build,
+					expTemplateFile);
+		}
 		
 		// get runtime template id
 		try {
