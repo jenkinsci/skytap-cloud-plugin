@@ -110,6 +110,8 @@ public class CreatePublishedServiceStep extends SkytapAction {
 			if (!vmName.isEmpty()) {
 				runtimeVMID = SkytapUtils.getVMIDFromName(
 						runtimeConfigurationID, vmName, authCredentials);
+			}else {
+				runtimeVMID = this.vmID;
 			}
 
 		} catch (SkytapException e1) {
@@ -118,7 +120,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 		}
 
 		// build url to get interfaces associated with config/vm.
-		String requestURL = buildGetInterfacesURL();
+		String requestURL = buildGetInterfacesURL(runtimeVMID);
 
 		// build request
 		HttpGet hg = SkytapUtils.buildHttpGetRequest(requestURL,
@@ -293,7 +295,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 	}
 
-	private String buildGetInterfacesURL() {
+	private String buildGetInterfacesURL(String vid) {
 
 		JenkinsLogger.log("Building request url ...");
 
@@ -301,18 +303,8 @@ public class CreatePublishedServiceStep extends SkytapAction {
 		sb.append("configurations/");
 		sb.append(runtimeConfigurationID);
 
-		// adjust url depending on whether user provided vm name or id
-		if (vmID.isEmpty()) {
-
-			sb.append("/vms?vm_name=");
-			sb.append(URLEncoder.encode(vmName));
-
-		} else {
-
-			sb.append("/vms/");
-			sb.append(vmID);
-
-		}
+		sb.append("/vms/");
+		sb.append(vid);
 
 		JenkinsLogger.log("Request URL: " + sb.toString());
 		return sb.toString();

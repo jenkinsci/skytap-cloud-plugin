@@ -152,6 +152,7 @@ public class SkytapUtils {
 				JenkinsLogger.log("Name matched. Retrieving vm id.");
 				
 				String vid = vmObject.get("id").getAsString();
+				JenkinsLogger.log("VM ID: " + vid);
 				return vid;
 			}
 			
