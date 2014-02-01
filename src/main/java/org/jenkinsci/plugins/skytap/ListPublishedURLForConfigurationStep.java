@@ -146,7 +146,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		} else {
 
 			JenkinsLogger.log("Outputting url to file: " + expUrlFile);
-			
+
 			try {
 
 				// output to the file system
@@ -179,19 +179,27 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		while (iter.hasNext()) {
 
 			JsonElement publishSetElement = (JsonElement) iter.next();
+			JsonArray vmArray = publishSetElement.getAsJsonObject().get("vms")
+					.getAsJsonArray();
 
-			String currentName = publishSetElement.getAsJsonObject()
-					.get("name").getAsString();
+			for (int i = 0; i < vmArray.size(); i++) {
 
-			JenkinsLogger.log("Scanning set " + currentName + " ...");
+				JsonObject vmObject = vmArray.get(i).getAsJsonObject();
+				String currentName = vmObject.get("name").getAsString();
 
-			if (currentName.equals(name)) {
-				JenkinsLogger.log("Name matched user provided url name: "
-						+ name);
-				String urlValue = publishSetElement.getAsJsonObject()
-						.get("url").getAsString();
-				JenkinsLogger.log("Obtained url: " + urlValue);
-				return urlValue;
+				JenkinsLogger.log("Scanning VM URL " + currentName + " ...");
+
+				if (currentName.equals(name)) {
+
+					JenkinsLogger.log("Name matched user provided url name: "
+							+ name);
+
+					String urlValue = vmObject.get("desktop_url").getAsString();
+
+					JenkinsLogger.log("Obtained url: " + urlValue);
+					return urlValue;
+				}
+
 			}
 
 		}
@@ -199,6 +207,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		// no match?
 		JenkinsLogger
 				.log("No publish_sets matched user provided name: " + name);
+
 		return "";
 
 	}
