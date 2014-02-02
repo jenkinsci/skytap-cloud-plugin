@@ -195,8 +195,10 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 		String serviceOutputString = externalIp + ":" + externalPort;
 
-		String expPublishedServiceFile = SkytapUtils.convertFileNameToFullPath(
+		String expPublishedServiceFile = SkytapUtils.expandEnvVars(
 				build, publishedServiceFile);
+		expPublishedServiceFile = SkytapUtils.convertFileNameToFullPath(
+				build, expPublishedServiceFile);
 		JenkinsLogger.log("Outputting service output string: "
 				+ serviceOutputString + " to file: " + expPublishedServiceFile);
 

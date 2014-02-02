@@ -83,9 +83,14 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 		// get runtime config id
+		String expConfigFile = SkytapUtils.expandEnvVars(build, configurationFile);
+		if (!expConfigFile.equals("")) {
+			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigFile);
+		}
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
-					configurationFile);
+					expConfigFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving configuration id: "
 					+ e.getMessage());
@@ -178,8 +183,10 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 
 		String serviceOutputString = externalIp + ":" + externalPort;
 
-		String expPublishedServiceFile = SkytapUtils.convertFileNameToFullPath(
+		String expPublishedServiceFile = SkytapUtils.expandEnvVars(
 				build, publishedServiceFile);
+		expPublishedServiceFile = SkytapUtils.convertFileNameToFullPath(
+				build, expPublishedServiceFile);
 		JenkinsLogger.log("Outputting service output string: "
 				+ serviceOutputString + " to file: " + expPublishedServiceFile);
 
