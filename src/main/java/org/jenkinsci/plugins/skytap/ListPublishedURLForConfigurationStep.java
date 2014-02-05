@@ -133,7 +133,13 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		JsonObject jo = je.getAsJsonObject();
 		JsonArray ja = jo.getAsJsonArray("publish_sets");
 
-		String publishedUrl = getPublishedUrl(ja, urlName);
+		String publishedUrl = "";
+		try {
+			publishedUrl = getPublishedUrl(ja, urlName);
+		} catch (SkytapException e1) {
+			JenkinsLogger.error(e1.getMessage());
+			return false;
+		}
 
 		if (publishedUrl.equals("")) {
 
@@ -169,7 +175,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		return true;
 	}
 
-	private String getPublishedUrl(JsonArray ja, String name) {
+	private String getPublishedUrl(JsonArray ja, String name) throws SkytapException {
 
 		JenkinsLogger.log("Scanning publish_sets ...");
 
@@ -179,29 +185,30 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		while (iter.hasNext()) {
 
 			JsonElement publishSetElement = (JsonElement) iter.next();
-			JsonArray vmArray = publishSetElement.getAsJsonObject().get("vms")
-					.getAsJsonArray();
-
-			for (int i = 0; i < vmArray.size(); i++) {
-
-				JsonObject vmObject = vmArray.get(i).getAsJsonObject();
-				String currentName = vmObject.get("name").getAsString();
-
-				JenkinsLogger.log("Scanning VM URL " + currentName + " ...");
-
-				if (currentName.equals(name)) {
-
-					JenkinsLogger.log("Name matched user provided url name: "
-							+ name);
-
-					String urlValue = vmObject.get("desktop_url").getAsString();
-
-					JenkinsLogger.log("Obtained url: " + urlValue);
-					return urlValue;
-				}
-
+			
+			// check for name match
+			String pubSetName = publishSetElement.getAsJsonObject().get("name").getAsString();
+			JenkinsLogger.log("Publish Set Name: " + pubSetName);
+			
+			if(pubSetName.equals(name)){
+			
+			JenkinsLogger.log("Publish Set Name matched: " + pubSetName);
+				
+			String publishSetType = publishSetElement.getAsJsonObject().get("publish_set_type").getAsString();
+			
+			// if publish set type is multiple url, throw an error
+			if ( publishSetType.equals("multiple_url") ){
+				throw new SkytapException("Multiple URLs are not supported.");
 			}
-
+			
+			// if publish set type is single url
+			if ( publishSetType.equals("single_url") ){
+				String desktopsUrl = publishSetElement.getAsJsonObject().get("desktops_url").getAsString();
+				return desktopsUrl;
+			}
+			
+			}
+			
 		}
 
 		// no match?
