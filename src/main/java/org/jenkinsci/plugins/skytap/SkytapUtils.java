@@ -29,9 +29,13 @@ import hudson.util.VariableResolver;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
@@ -40,6 +44,11 @@ import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+//
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
+//
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpDelete;
@@ -100,6 +109,61 @@ public class SkytapUtils {
 		return expandedString;
 	}
 
+	
+	public static String getVMIDFromName(String confId, String vname, String authCredentials) throws SkytapException {
+		
+		// build url to retrieve vm object by name, so we can extract the id
+		JenkinsLogger.log("Building request url ...");
+
+		StringBuilder sb = new StringBuilder("https://cloud.skytap.com/");
+		sb.append("configurations/");
+		sb.append(confId);
+		sb.append("/vms");
+		String getVmIdURL = sb.toString();
+		
+		// create request
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
+		
+		// execute request
+		String hgResponse = "";
+		
+		hgResponse = SkytapUtils.executeHttpRequest(hg);
+
+		// check for errors
+		SkytapUtils.checkResponseForErrors(hgResponse);
+		
+		// find vm that matches name
+		
+		JsonParser parser = new JsonParser();
+		JsonElement je = parser.parse(hgResponse);
+		JsonArray vmArray = je.getAsJsonArray();
+		
+		JenkinsLogger.log("Iterating through vm array to match name: " + vname);
+		
+		Iterator iter = vmArray.iterator();
+		
+		while(iter.hasNext()){
+			JsonObject vmObject = (JsonObject)iter.next();
+			JenkinsLogger.log(vmObject.toString());
+			String currentName = vmObject.get("name").getAsString();
+			JenkinsLogger.log("Found VM with name: " + currentName);
+			
+			if(currentName.equals(vname)){
+				JenkinsLogger.log("Name matched. Retrieving vm id.");
+				
+				String vid = vmObject.get("id").getAsString();
+				JenkinsLogger.log("VM ID: " + vid);
+				return vid;
+			}
+			
+		}
+		
+		// if we failed to match the name throw an exception
+		throw new SkytapException("No vms were found matching name: " + vname);
+		
+	}
+
+	
 	/**
 	 * This is a utility method used to get the json object in json file used
 	 * for configs, templates, etc.
@@ -294,16 +358,124 @@ public class SkytapUtils {
 	public static String executeHttpRequest(HttpRequestBase hr)
 			throws SkytapException {
 
-		HttpClient httpclient = new DefaultHttpClient();
+		boolean retryHttpRequest = true;
+		int retryCount = 1;
 		String responseString = "";
+		while (retryHttpRequest == true) {
+			HttpClient httpclient = new DefaultHttpClient();
+			//
+			// Set timeouts for httpclient requests to 60 seconds
+			//
+			HttpConnectionParams.setConnectionTimeout(httpclient.getParams(),
+					60000);
+			HttpConnectionParams.setSoTimeout(httpclient.getParams(), 60000);
+			//
+			responseString = "";
+			HttpResponse response = null;
+			try {
+				Date myDate = new Date();
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd:HH-mm-ss");
+				String myDateString = sdf.format(myDate);
+
+				JenkinsLogger.log(myDateString + "\n" + "Executing Request: "
+						+ hr.getRequestLine());
+				response = httpclient.execute(hr);
+
+				String responseStatusLine = response.getStatusLine().toString();
+				if (responseStatusLine.contains("423 Locked")) {
+					retryCount = retryCount + 1;
+					if (retryCount > 5) {
+						retryHttpRequest = false;
+						JenkinsLogger
+								.error("Object busy too long - giving up.");
+					} else {
+						JenkinsLogger.log("Object busy - Retrying...");
+						try {
+							Thread.sleep(15000);
+						} catch (InterruptedException e1) {
+							JenkinsLogger.error(e1.getMessage());
+						}
+					}
+				} else if (responseStatusLine.contains("409 Conflict")) {
+
+					throw new SkytapException(responseStatusLine);
+
+				} else {
+
+					JenkinsLogger.log(response.getStatusLine().toString());
+					HttpEntity entity = response.getEntity();
+					responseString = EntityUtils.toString(entity, "UTF-8");
+					retryHttpRequest = false;
+				}
+
+			} catch (HttpResponseException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error("HTTP Response Code: " + e.getStatusCode());
+
+			} catch (ParseException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error(e.getMessage());
+
+			} catch (InterruptedIOException e) {
+				Date myDate = new Date();
+				SimpleDateFormat sdf = new SimpleDateFormat(
+						"yyyy-MM-dd:HH-mm-ss");
+				String myDateString = sdf.format(myDate);
+
+				retryCount = retryCount + 1;
+				if (retryCount > 5) {
+					retryHttpRequest = false;
+					JenkinsLogger.error("API Timeout - giving up. "
+							+ e.getMessage());
+				} else {
+					JenkinsLogger.log(myDateString + "\n" + e.getMessage()
+							+ "\n" + "API Timeout - Retrying...");
+				}
+			} catch (IOException e) {
+				retryHttpRequest = false;
+				JenkinsLogger.error(e.getMessage());
+			} finally {
+				if (response != null) {
+					// response will be null if this is a timeout retry
+					HttpEntity entity = response.getEntity();
+					try {
+						responseString = EntityUtils.toString(entity, "UTF-8");
+					} catch (IOException e) {
+						// JenkinsLogger.error(e.getMessage());
+					}
+				}
+
+				httpclient.getConnectionManager().shutdown();
+			}
+		}
+
+		return responseString;
+
+	}
+
+	/**
+	 * Utility method used to execute an http delete. Returns the status line
+	 * which can be parsed as desired by the caller.
+	 * 
+	 * @param hd
+	 * @return
+	 * @throws SkytapException
+	 */
+	public static String executeHttpDeleteRequest(HttpDelete hd) {
+
+		String responseString = "";
+
+		HttpClient httpclient = new DefaultHttpClient();
 		HttpResponse response = null;
+
+		JenkinsLogger.log("Executing Request: " + hd.getRequestLine());
 
 		try {
 
-			JenkinsLogger.log("Executing Request: " + hr.getRequestLine());
-			response = httpclient.execute(hr);
-
-			JenkinsLogger.log(response.getStatusLine().toString());
+			response = httpclient.execute(hd);
+			String statusLine = response.getStatusLine().toString();
+			JenkinsLogger.log(statusLine);
 			HttpEntity entity = response.getEntity();
 			responseString = EntityUtils.toString(entity, "UTF-8");
 
@@ -328,39 +500,6 @@ public class SkytapUtils {
 		}
 
 		return responseString;
-
-	}
-
-	/**
-	 * Utility method used to execute an http delete. Returns the status line
-	 * which can be parsed as desired by the caller.
-	 * 
-	 * @param hd
-	 * @return
-	 */
-	public static String executeHttpDeleteRequest(HttpDelete hd) {
-
-		String responseString = "";
-
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpResponse response = null;
-
-		try {
-			response = httpclient.execute(hd);
-			String statusLine = response.getStatusLine().toString();
-			JenkinsLogger.log(statusLine);
-			HttpEntity entity = response.getEntity();
-			responseString = EntityUtils.toString(entity, "UTF-8");
-
-		} catch (ClientProtocolException e) {
-			JenkinsLogger.error("HTTP Error: " + e.getMessage());
-		} catch (IOException e) {
-			JenkinsLogger
-					.error("An error occurred executing the http request: "
-							+ e.getMessage());
-		}
-
-		return "";
 	}
 
 	/**
@@ -380,8 +519,8 @@ public class SkytapUtils {
 
 		if (je.isJsonNull()) {
 			return;
-		} else {
-			jo = je.getAsJsonObject();
+		} else if (je.isJsonArray()) {
+			return;
 		}
 
 		je = parser.parse(response);
@@ -419,11 +558,24 @@ public class SkytapUtils {
 				return;
 			}
 
-			// handle case where 'error' element is a quoted string
-			String error = jo.get("error").getAsString();
+			// handle case where 'error' element is a boolean OR quoted string
+			if (jo.get("error").isJsonPrimitive()) {
 
-			if (!error.equals("")) {
-				throw new SkytapException(error);
+				String error = jo.get("error").getAsString();
+
+				// handle boolean cases
+				if (error.equals("false")) {
+					return;
+				}
+
+				// TODO: find out where the error msg would be in this case
+				if (error.equals("true")) {
+					throw new SkytapException(error);
+				}
+
+				if (!error.equals("")) {
+					throw new SkytapException(error);
+				}
 			}
 
 		}
@@ -467,6 +619,56 @@ public class SkytapUtils {
 	}
 
 	/**
+	 * Makes call to skytap to retrieve the id of a named project.
+	 * 
+	 * @param projName
+	 * @param authCredentials
+	 * @return projId
+	 */
+	public static String getProjectID(String projName, String authCredentials) {
+
+		// build url
+		StringBuilder sb = new StringBuilder("https://cloud.skytap.com");
+		sb.append("/projects");
+
+		// create http get
+		HttpGet hg = SkytapUtils.buildHttpGetRequest(sb.toString(),
+				authCredentials);
+
+		// execute request
+		String response;
+		try {
+			response = SkytapUtils.executeHttpRequest(hg);
+		} catch (SkytapException e) {
+			JenkinsLogger.error("Skytap Exception: " + e.getMessage());
+			return "";
+		}
+
+		// response string will be a json array of all projects
+		JsonParser parser = new JsonParser();
+		JsonElement je = parser.parse(response);
+		JsonArray ja = je.getAsJsonArray();
+
+		Iterator itr = ja.iterator();
+		while (itr.hasNext()) {
+			JsonElement projElement = (JsonElement) itr.next();
+			String projElementName = projElement.getAsJsonObject().get("name")
+					.getAsString();
+
+			if (projElementName.equals(projName)) {
+				String projElementId = projElement.getAsJsonObject().get("id")
+						.getAsString();
+				return projElementId;
+			}
+
+		}
+
+		JenkinsLogger.error("No project matching name \"" + projName + "\""
+				+ " was found.");
+		return "";
+	}
+
+	/**
 	 * Prepends the workspace path to a save file name as a default if user has
 	 * not provided a full path.
 	 * 
@@ -485,7 +687,9 @@ public class SkytapUtils {
 
 		if (fu.getPath(savefile).equals("")) {
 			JenkinsLogger
-					.log("File: " + savefile + " was specified without a path. Defaulting path to Jenkins workspace.");
+					.log("File: "
+							+ savefile
+							+ " was specified without a path. Defaulting path to Jenkins workspace.");
 			String workspacePath = SkytapUtils.expandEnvVars(build,
 					"${WORKSPACE}");
 
