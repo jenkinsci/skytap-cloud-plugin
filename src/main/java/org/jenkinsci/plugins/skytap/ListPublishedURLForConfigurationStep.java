@@ -198,7 +198,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 			
 			// if publish set type is multiple url, throw an error
 			if ( publishSetType.equals("multiple_url") ){
-				throw new SkytapException("Multiple URLs are not supported.");
+				throw new SkytapException("URLs for individual VMs are not supported.");
 			}
 			
 			// if publish set type is single url
