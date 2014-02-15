@@ -36,12 +36,6 @@
         								<f:password name="urlPassword" field="urlPassword"/>
       								</f:entry>
                                  </f:optionalBlock>
-<!--
-    <f:optionalBlock name="hasPassword" title="Require Password for Access" checked="${instance.hasPassword}" inline="true">
-      <f:entry title="Password">
-        <f:password name="urlPassword" field="urlPassword"/>
-      </f:entry>
-    </f:optionalBlock>
--->
+
 </j:jelly>
 
