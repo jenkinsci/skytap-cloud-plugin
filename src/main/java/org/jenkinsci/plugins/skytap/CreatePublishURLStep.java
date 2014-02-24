@@ -76,7 +76,7 @@ public class CreatePublishURLStep extends SkytapAction {
 			String configurationFile, String urlSaveFilename,
 			String permissionOption, RequirePasswordBlock hasPassword) {
 
-		super("Create Publish URL");
+		super("Create Published URL");
 		this.configurationFile = configurationFile;
 		this.configurationID = configurationID;
 		this.urlSaveFilename = urlSaveFilename;
@@ -383,6 +383,6 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			CreatePublishURLStep.class, "Create Publish URL");
+			CreatePublishURLStep.class, "Create Published URL");
 
 }
