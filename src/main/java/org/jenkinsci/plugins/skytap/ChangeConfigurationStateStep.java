@@ -136,9 +136,10 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 		// if its already at our desired runstate, yay we win nothing to do..
 		if (this.targetRunState.equals(currentRunState)) {
 			JenkinsLogger
-					.defaultLogMessage("Current runstate is equal to target. Skipping this step.");
+					.defaultLogMessage("Info: Current runstate appears to be equal to target runstate.");
+//					.defaultLogMessage("Current runstate is equal to target. Skipping this step.");
 			JenkinsLogger.defaultLogMessage("----------------------------------------");
-			return true;
+//			return true;
 		} else {
 
 			// certain config state transitions are invalid for skytap so error
