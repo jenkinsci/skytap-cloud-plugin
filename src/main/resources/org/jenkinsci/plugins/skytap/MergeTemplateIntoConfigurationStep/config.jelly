@@ -17,6 +17,10 @@
     <f:entry title="Template File" field="templateFile" >
   		<f:textbox />
   	</f:entry>
+  	
+    <f:entry title="Configuration Data Save File" field="configFile" >
+  		<f:textbox />
+  	</f:entry>  
   	   
 </j:jelly>
 

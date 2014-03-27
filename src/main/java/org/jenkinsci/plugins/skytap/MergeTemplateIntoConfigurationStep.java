@@ -1,6 +1,13 @@
 package org.jenkinsci.plugins.skytap;
 
+
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.net.URLEncoder;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
@@ -10,6 +17,11 @@ import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapAction;
 import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapActionDescriptor;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonWriter;
 import com.thoughtworks.xstream.annotations.XStreamOmitField;
 
 public class MergeTemplateIntoConfigurationStep extends SkytapAction {
@@ -19,6 +31,8 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 	private final String templateID;
 	private final String templateFile;
+	private final String configFile;
+
 
 	// these vars will be initialized when the step is run
 	@XStreamOmitField
@@ -40,7 +54,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 	@DataBoundConstructor
 	public MergeTemplateIntoConfigurationStep(String configurationID,
-			String configurationFile, String templateID, String templateFile) {
+			String configurationFile, String templateID, String templateFile, String configFile) {
 
 		super("Merge Template into Configuration");
 
@@ -48,6 +62,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		this.configurationFile = configurationFile;
 		this.templateID = templateID;
 		this.templateFile = templateFile;
+		this.configFile = configFile;
 	}
 
 	public Boolean executeStep(AbstractBuild build,
@@ -84,6 +99,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 			expConfigurationFile = SkytapUtils.convertFileNameToFullPath(build,
 					expConfigurationFile);
 		}
+		String expConfigFile = SkytapUtils.expandEnvVars(build, configFile);
 
 		// get runtime config id
 		try {
@@ -134,6 +150,32 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 			JenkinsLogger.error("Failing build step.");
 			return false;
 		}
+		// get json object from the response
+		JsonParser parser = new JsonParser();
+		JsonElement je = parser.parse(httpRespBody);
+		JsonObject jo = je.getAsJsonObject();
+
+		// save json object to the config file path
+		// if user has provided just a filename with no path, default to
+		// place it in their Jenkins workspace
+		expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+				expConfigFile);
+
+		Writer output = null;
+		File file = new File(expConfigFile);
+		try {
+
+			output = new BufferedWriter(new FileWriter(file));
+			output.write(httpRespBody);
+			output.close();
+		} catch (IOException e) {
+
+			JenkinsLogger
+					.error("Skytap Plugin failed to save configuration to file: "
+							+ expConfigFile);
+			return false;
+		}
+
 
 		JenkinsLogger.log("Template " + runtimeTemplateID
 				+ " was successfully merged to configuration "
@@ -191,6 +233,13 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 			return false;
 		}
 
+		// check whether no config file value was provided
+		if (this.configFile.equals("")) {
+			JenkinsLogger
+					.error("No value was provided for the configuration file. Please provide a valid config file value.");
+			return false;
+		}
+
 		return true;
 
 	}
@@ -215,4 +264,9 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 	public String getTemplateFile() {
 		return templateFile;
 	}
+
+	public String getConfigFile() {
+		return configFile;
+	}
+
 }
