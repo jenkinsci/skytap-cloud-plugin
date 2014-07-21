@@ -236,7 +236,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		// check whether no config file value was provided
 		if (this.configFile.equals("")) {
 			JenkinsLogger
-					.log("No optional value was provided for a new configuration output file. Continuing...");
+					.log("No optional value was provided for a new configuration data save file. Continuing...");
 			return true;
 		}
 
