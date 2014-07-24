@@ -100,6 +100,10 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 					expConfigurationFile);
 		}
 		String expConfigFile = SkytapUtils.expandEnvVars(build, configFile);
+		if (!expConfigFile.equals("")) {
+			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+					expConfigFile);
+		}
 
 		// get runtime config id
 		try {
@@ -158,22 +162,24 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		// save json object to the config file path
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
-		expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
+		if (!expConfigFile.equals("")) {
+			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
 				expConfigFile);
 
-		Writer output = null;
-		File file = new File(expConfigFile);
-		try {
+			Writer output = null;
+			File file = new File(expConfigFile);
+			try {
 
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(httpRespBody);
-			output.close();
-		} catch (IOException e) {
+				output = new BufferedWriter(new FileWriter(file));
+				output.write(httpRespBody);
+				output.close();
+			} catch (IOException e) {
 
-			JenkinsLogger
-					.error("Skytap Plugin failed to save configuration to file: "
+				JenkinsLogger
+						.error("Skytap Plugin failed to save configuration to file: "
 							+ expConfigFile);
-			return false;
+				return false;
+			}
 		}
 
 
