@@ -1,19 +1,19 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  	<f:entry title="Configuration ID" field="configurationID" >
+  	<f:entry title="Environment ID" field="configurationID" >
   		<f:textbox />
   		<p>- OR -</p>
   	</f:entry>
   	
-    <f:entry title="Configuration File" field="configurationFile" >
+    <f:entry title="Environment File" field="configurationFile" >
   		<f:textbox />
   	</f:entry>
   	
-  	<f:entry title="Published URL Name" field="urlName" >
+  	<f:entry title="Sharing Portal Name" field="urlName" >
   		<f:textbox />
   	</f:entry>
   	
-    <f:entry title="Published URL Save Filename" field="urlFile" >
+    <f:entry title="Sharing Portal Save Filename" field="urlFile" >
   		<f:textbox />
   	</f:entry>
   	   

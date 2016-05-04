@@ -33,8 +33,8 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -66,7 +66,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		JenkinsLogger
-				.defaultLogMessage("List Published URL for Configuration Step");
+				.defaultLogMessage("List Sharing Portal for Environment Step");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 
@@ -91,17 +91,17 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 					expConfigurationFile);
 		}
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error obtaining runtime configuration id: "
+			JenkinsLogger.error("Error obtaining runtime environment id: "
 					+ e.getMessage());
 		}
 
-		JenkinsLogger.log("Configuration ID: " + runtimeConfigurationID);
-		JenkinsLogger.log("Configuration File: " + expConfigurationFile);
+		JenkinsLogger.log("Environment ID: " + runtimeConfigurationID);
+		JenkinsLogger.log("Environment File: " + expConfigurationFile);
 		JenkinsLogger.log("URL Name: " + urlName);
 		JenkinsLogger.log("URL Save Filename: " + expUrlFile);
 
@@ -144,7 +144,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		if (publishedUrl.equals("")) {
 
 			JenkinsLogger.error("URL Name: " + urlName
-					+ " could not be found in publish_sets for configuration "
+					+ " could not be found in publish_sets for environment "
 					+ runtimeConfigurationID);
 			JenkinsLogger.error("Failing build step.");
 			return false;
@@ -188,11 +188,11 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 			
 			// check for name match
 			String pubSetName = publishSetElement.getAsJsonObject().get("name").getAsString();
-			JenkinsLogger.log("Publish Set Name: " + pubSetName);
+			JenkinsLogger.log("Sharing Portal Name: " + pubSetName);
 			
 			if(pubSetName.equals(name)){
 			
-			JenkinsLogger.log("Publish Set Name matched: " + pubSetName);
+			JenkinsLogger.log("Sharing Portal Name matched: " + pubSetName);
 				
 			String publishSetType = publishSetElement.getAsJsonObject().get("publish_set_type").getAsString();
 			
@@ -249,7 +249,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
 			ListPublishedURLForConfigurationStep.class,
-			"List Published URL For Configuration");
+			"List Sharing Portal for Environment");
 
 	public String getConfigurationID() {
 		return configurationID;
@@ -287,7 +287,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -295,7 +295,7 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 

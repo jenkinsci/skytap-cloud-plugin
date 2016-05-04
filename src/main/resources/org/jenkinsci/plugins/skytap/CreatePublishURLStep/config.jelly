@@ -1,17 +1,21 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  	<f:entry title="Configuration ID" field="configurationID" >
+  	<f:entry title="Environment ID" field="configurationID" >
   		<f:textbox />
   		<p>- OR -</p>
   	</f:entry>
   	
-    <f:entry title="Configuration File" field="configurationFile" >
+	<f:entry title="Environment File" field="configurationFile" >
   		<f:textbox />
   	</f:entry>
   	
-  	 <f:entry title="URL Save Filename" field="urlSaveFilename" >
+	<f:entry title="Portal Save Filename" field="urlSaveFilename" >
   		<f:textbox />
   	</f:entry>
+
+	<f:entry title="Portal Name" field="portalName" >
+		<f:textbox />
+	</f:entry>
 
 <f:entry name="permissionOption" title="Select Permissions" field="permissionOption">
     <select name="permissionOption">
