@@ -56,6 +56,7 @@ public class CreatePublishURLStep extends SkytapAction {
 	private final String configurationID;
 	private final String configurationFile;
 	private final String urlSaveFilename;
+	private final String portalName;
 	private final String permissionOption;
 
 	private final Boolean hasPassword;
@@ -73,14 +74,20 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	@DataBoundConstructor
 	public CreatePublishURLStep(String configurationID,
-			String configurationFile, String urlSaveFilename,
-			String permissionOption, RequirePasswordBlock hasPassword) {
+			String configurationFile, String urlSaveFilename, String portalName,
+			String permissionOption, RequirePasswordBlock hasPassword ) {
 
 		super("Create Published URL");
 		this.configurationFile = configurationFile;
 		this.configurationID = configurationID;
 		this.urlSaveFilename = urlSaveFilename;
 		this.permissionOption = permissionOption;
+
+		if (portalName == null) {
+			this.portalName = "Default Publish Set";
+		} else {
+			this.portalName = portalName;
+		}
 
 		if (hasPassword == null) {
 			this.hasPassword = false;
@@ -95,7 +102,7 @@ public class CreatePublishURLStep extends SkytapAction {
 			SkytapGlobalVariables globalVars) {
 
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Creating Publish URL");
+		JenkinsLogger.defaultLogMessage("Creating Sharing Portal");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		
 		if(preFlightSanityChecks()==false){
@@ -120,18 +127,18 @@ public class CreatePublishURLStep extends SkytapAction {
 		
 		String expUrlFile = SkytapUtils.expandEnvVars(build, urlSaveFilename);
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error retrieving configuration id: "
+			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
 			return false;
 		}
 
-		// get all VM ids for config
-		JenkinsLogger.log("Retrieving VM ids for configuration: "
+		// get all VM ids for environment
+		JenkinsLogger.log("Retrieving VM ids for environment: "
 				+ runtimeConfigurationID);
 
 		List<String> vmList = new ArrayList<String>();
@@ -153,7 +160,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		}
 
 		// get url
-		JenkinsLogger.log("Publish Set URL: " + pubSetUrl);
+		JenkinsLogger.log("Sharing Portal URL: " + pubSetUrl);
 
 		Writer output = null;
 		
@@ -232,7 +239,7 @@ public class CreatePublishURLStep extends SkytapAction {
 		}
 
 		sb.append("],\"password\":" + passwordString + ",");
-		sb.append("\"name\":\"Default Publish Set\"}}");
+		sb.append("\"name\":\"" + this.portalName + "\"}}");
 
 		String jsonString = sb.toString();
 
@@ -328,13 +335,13 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		// check whether user entered both values for conf id/conf file
 		if(!this.configurationID.equals("") && !this.configurationFile.equals("")){
-			JenkinsLogger.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 		
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
-			JenkinsLogger.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 
@@ -381,8 +388,11 @@ public class CreatePublishURLStep extends SkytapAction {
 		return urlPassword;
 	}
 
+	public String getPortalName() {
+		return portalName;
+	}
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			CreatePublishURLStep.class, "Create Published URL");
+			CreatePublishURLStep.class, "Create Sharing Portal");
 
 }
