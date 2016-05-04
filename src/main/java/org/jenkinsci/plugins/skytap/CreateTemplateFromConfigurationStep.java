@@ -61,8 +61,8 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private String authCredentials;
 	
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the id from the json element
 	@XStreamOmitField
@@ -89,7 +89,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 			SkytapGlobalVariables globalVars) {
 
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Creating Template from Configuration");
+		JenkinsLogger.defaultLogMessage("Creating Template from Environment");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		
 		if(preFlightSanityChecks()==false){
@@ -117,11 +117,11 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		try {
 			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(this.configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e2) {
-			JenkinsLogger.error("Error obtaining configuration id: " + e2.getMessage());
+			JenkinsLogger.error("Error obtaining environment id: " + e2.getMessage());
 			return false;
 		}
 		
-		JenkinsLogger.log("Runtime Config ID: " + this.runtimeConfigurationID);
+		JenkinsLogger.log("Runtime Environment ID: " + this.runtimeConfigurationID);
 
 		try {
 			// create the template
@@ -194,7 +194,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 	
 	private void sendTemplateCreationRequest(String configId) throws SkytapException {
 		
-		JenkinsLogger.log("Sending Template Creation Request for Configuration " + configId);
+		JenkinsLogger.log("Sending Template Creation Request for Environment " + configId);
 		
 		// build request for initial template creation
 		String templateCreateRequestUrl = buildRequestCreationURL(configId);
@@ -272,13 +272,13 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 
 		// check whether user entered both values for conf id/conf file
 		if(!this.configurationID.equals("") && !this.configurationFile.equals("")){
-			JenkinsLogger.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 		
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
-			JenkinsLogger.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 		
@@ -312,6 +312,6 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			CreateTemplateFromConfigurationStep.class, "Create Template from Configuration");
+			CreateTemplateFromConfigurationStep.class, "Create Template from Environment");
 	
 }

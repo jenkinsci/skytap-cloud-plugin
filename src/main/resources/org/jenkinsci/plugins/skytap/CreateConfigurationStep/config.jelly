@@ -10,11 +10,11 @@
   		<f:textbox />
   	</f:entry>
  
-    <f:entry title="Configuration Name" field="configName" >
+    <f:entry title="Environment Name" field="configName" >
   		<f:textbox />
   	</f:entry>   
   	
-    <f:entry title="Configuration Data Save File" field="configFile" >
+    <f:entry title="Environment Data Save File" field="configFile" >
   		<f:textbox />
   	</f:entry>    
 

@@ -65,8 +65,8 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 	@XStreamOmitField
 	private String authCredentials;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -122,13 +122,13 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		// execute request
 		String httpRespBody = SkytapUtils.executeHttpRequest(hg);
 
-		// check for error indicating config is not connected to VPN
+		// check for error indicating environment is not connected to VPN
 		try {
 			SkytapUtils.checkResponseForErrors(httpRespBody);
 		} catch (SkytapException e) {
 
 			// this is what we expect normally - return isconnected=false
-			if (e.getMessage().contains("Configuration not attached to VPN")) {
+			if (e.getMessage().contains("Environment not attached to VPN")) {
 				return isConnected;
 			} else {
 				throw e;
@@ -174,7 +174,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 					expConfigurationFile);
 		}
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigurationFile);
@@ -203,8 +203,8 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 			return false;
 		}
 
-		JenkinsLogger.log("Configuration ID: " + runtimeConfigurationID);
-		JenkinsLogger.log("Configuration File: " + expConfigurationFile);
+		JenkinsLogger.log("Environment ID: " + runtimeConfigurationID);
+		JenkinsLogger.log("Environment File: " + expConfigurationFile);
 		JenkinsLogger.log("Network ID: " + runtimeNetworkID);
 		JenkinsLogger.log("Network Name: " + this.configurationNetworkName);
 		JenkinsLogger.log("VPN ID: " + this.vpnID);
@@ -230,8 +230,8 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 					+ vpnID);
 		}
 
-		// attach the VPN to the configuration
-		JenkinsLogger.log("Attaching VPN to Configuration ...");
+		// attach the VPN to the environment
+		JenkinsLogger.log("Attaching VPN to Environment ...");
 
 		if (executeVPNAttach(runtimeConfigurationID, runtimeNetworkID, vpnID)) {
 
@@ -246,8 +246,8 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 
 		}
 
-		// connect the configuration to the VPN
-		JenkinsLogger.log("Connecting VPN to Configuration ...");
+		// connect the environment to the VPN
+		JenkinsLogger.log("Connecting VPN to Environment ...");
 
 		if (executeVPNConnect(runtimeConfigurationID, runtimeNetworkID, vpnID)) {
 
@@ -260,7 +260,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 			return false;
 		}
 
-		// pause before exiting to allow VPN and config to settle down
+		// pause before exiting to allow VPN and environment to settle down
 		int sleepTime = this.RETRY_INTERVAL_SECONDS;
 		JenkinsLogger.log("Pausing for " + sleepTime + " seconds.");
 
@@ -508,7 +508,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -516,7 +516,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 

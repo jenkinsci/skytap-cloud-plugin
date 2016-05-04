@@ -85,7 +85,7 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Creating Configuration from Template");
+		JenkinsLogger.defaultLogMessage("Creating Environment from Template");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 
@@ -167,7 +167,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		JsonObject jo = je.getAsJsonObject();
 
 		// TODO: extract into separate method
-		// if name was provided, update the created configuration's name
+		// if name was provided, update the created environment's name
 		// using an http put request
 		if (!expConfigName.equals("")) {
 
@@ -208,7 +208,7 @@ public class CreateConfigurationStep extends SkytapAction {
 
 		}
 
-		// save json object to the config file path
+		// save json object to the environment file path
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 		expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
@@ -224,7 +224,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		} catch (IOException e) {
 
 			JenkinsLogger
-					.error("Skytap Plugin failed to save configuration to file: "
+					.error("Skytap Plugin failed to save environment to file: "
 							+ expConfigFile);
 			return false;
 		}
@@ -238,7 +238,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		}
 
 		JenkinsLogger
-				.defaultLogMessage("Configuration successfully created and saved to file: "
+				.defaultLogMessage("Environment successfully created and saved to file: "
 						+ expConfigFile);
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
@@ -382,10 +382,10 @@ public class CreateConfigurationStep extends SkytapAction {
 			return false;
 		}
 
-		// check whether no config file value was provided
+		// check whether no environment file value was provided
 		if (this.configFile.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for the configuration file. Please provide a valid config file value.");
+					.error("No value was provided for the environment file. Please provide a valid environment file value.");
 			return false;
 		}
 
@@ -410,6 +410,6 @@ public class CreateConfigurationStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			CreateConfigurationStep.class, "Create Configuration from Template");
+			CreateConfigurationStep.class, "Create Environment from Template");
 
 }

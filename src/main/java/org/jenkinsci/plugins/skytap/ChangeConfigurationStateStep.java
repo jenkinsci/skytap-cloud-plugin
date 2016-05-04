@@ -63,8 +63,8 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 	@XStreamOmitField
 	private String authCredentials;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -88,7 +88,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			SkytapGlobalVariables globalVars) {
 
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Changing Configuration State");
+		JenkinsLogger.defaultLogMessage("Changing Environment State");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		
 		if(preFlightSanityChecks()==false){
@@ -110,7 +110,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 					expConfigurationFile);
 		}
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
@@ -118,7 +118,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			return false;
 		}
 		
-		// check current runstate of Skytap configuration
+		// check current runstate of Skytap environment
 		String currentRunState = "";
 				
 		try {
@@ -128,8 +128,8 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			return false;
 		}
 
-		JenkinsLogger.log("Configuration ID: " + runtimeConfigurationID);
-		JenkinsLogger.log("Configuration File: " + expConfigurationFile);
+		JenkinsLogger.log("Environment ID: " + runtimeConfigurationID);
+		JenkinsLogger.log("Environment File: " + expConfigurationFile);
 		JenkinsLogger.log("Target runstate: " + this.targetRunState);
 		JenkinsLogger.log("Current runstate: " + currentRunState);
 
@@ -142,7 +142,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 //			return true;
 		} else {
 
-			// certain config state transitions are invalid for skytap so error
+			// certain environment state transitions are invalid for skytap so error
 			// out if one of those is being attempted
 			if (!isConfigStateTransitionValid(currentRunState, targetRunState)) {
 				JenkinsLogger
@@ -173,7 +173,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			}
 
 			// retrieve the runstate
-			JenkinsLogger.log("Checking config runstate..");
+			JenkinsLogger.log("Checking environment runstate..");
 			
 			
 			try {
@@ -269,16 +269,16 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 	 */
 	private Boolean preFlightSanityChecks(){
 
-		// check whether user entered both values for conf id/conf file
+		// check whether user entered both values for environment id/conf file
 		if(!this.configurationID.equals("") && !this.configurationFile.equals("")){
-			JenkinsLogger.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			JenkinsLogger.defaultLogMessage("----------------------------------------");
 			return false;
 		}
 		
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
-			JenkinsLogger.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			JenkinsLogger.defaultLogMessage("----------------------------------------");
 			return false;
 		}
@@ -288,7 +288,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 	
 	private void sendStateChangeRequest(String confId, String tgtState) {
 
-		JenkinsLogger.log("Sending state change request for configuration id "
+		JenkinsLogger.log("Sending state change request for environment id "
 				+ confId + ". Target runstate is " + tgtState);
 
 		// build put request url
@@ -358,7 +358,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	/**
 	 * This method checks the current runstate of the specified Skytap
-	 * configuration
+	 * environment
 	 * 
 	 * @param configId
 	 * @return currentRunstate
@@ -417,6 +417,6 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			ChangeConfigurationStateStep.class, "Change Configuration State");
+			ChangeConfigurationStateStep.class, "Change Environment State");
 
 }

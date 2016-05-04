@@ -60,11 +60,11 @@ public class NetworkConnectStep extends SkytapAction {
 	@XStreamOmitField
 	private String authCredentials;
 
-	// runtime source network config ID
+	// runtime source network environment ID
 	@XStreamOmitField
 	private String runtimeSourceNetworkConfigurationID;
 
-	// runtime target network config ID
+	// runtime target network environment ID
 	@XStreamOmitField
 	private String runtimeTargetNetworkConfigurationID;
 
@@ -91,7 +91,7 @@ public class NetworkConnectStep extends SkytapAction {
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		JenkinsLogger
-				.defaultLogMessage("Connecting to Network in another Configuration");
+				.defaultLogMessage("Connecting to Network in another Environment");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 
@@ -129,7 +129,7 @@ public class NetworkConnectStep extends SkytapAction {
 							expTargetNetworkConfigurationFile);
 		}
 
-		// get runtime config ids for source and target network configurations
+		// get runtime environment ids for source and target network environments
 		try {
 
 			runtimeSourceNetworkConfigurationID = SkytapUtils.getRuntimeId(
@@ -280,7 +280,7 @@ public class NetworkConnectStep extends SkytapAction {
 			String tgtNetId) {
 
 		JenkinsLogger.log("Checking availability of target network with id: "
-				+ tgtNetId + " in configuration with id: " + tgtConfigId);
+				+ tgtNetId + " in environment with id: " + tgtConfigId);
 
 		// build busy check request
 		String requestURL = buildCheckTargetNetworkURL(tgtConfigId, tgtNetId);
@@ -359,14 +359,14 @@ public class NetworkConnectStep extends SkytapAction {
 		if (!this.sourceNetworkConfigurationFile.equals("")
 				&& !this.sourceNetworkConfigurationID.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both source configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both source environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
 		if (!this.targetNetworkConfigurationFile.equals("")
 				&& !this.targetNetworkConfigurationID.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both target configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both target environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -374,14 +374,14 @@ public class NetworkConnectStep extends SkytapAction {
 		if (this.sourceNetworkConfigurationFile.equals("")
 				&& this.sourceNetworkConfigurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 
 		if (this.targetNetworkConfigurationFile.equals("")
 				&& this.targetNetworkConfigurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 
@@ -431,6 +431,6 @@ public class NetworkConnectStep extends SkytapAction {
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
 			NetworkConnectStep.class,
-			"Connect to Network in another Configuration (ICNR)");
+			"Connect to Network in another Environment (ICNR)");
 
 }

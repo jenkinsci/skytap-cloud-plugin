@@ -82,7 +82,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
-		// get runtime config id
+		// get runtime environment id
 		String expConfigFile = SkytapUtils.expandEnvVars(build, configurationFile);
 		if (!expConfigFile.equals("")) {
 			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
@@ -92,7 +92,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error retrieving configuration id: "
+			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
 			return false;
 		}
@@ -111,7 +111,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		
 		} else { runtimeVMID = vmID; }
 		
-		// build url to get interfaces associated with config/vm.
+		// build url to get interfaces associated with environment/vm.
 		String requestURL = buildGetInterfacesURL(runtimeConfigurationID, runtimeVMID);
 
 		// build request
@@ -249,7 +249,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		JsonArray interfaceArray = (JsonArray) vmObject.get("interfaces");
 
 			JenkinsLogger
-					.log("Searching configuration's interfaces for interface with network name: "
+					.log("Searching environment's interfaces for interface with network name: "
 							+ netName);
 
 			Iterator itr = interfaceArray.iterator();
@@ -306,7 +306,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -314,7 +314,7 @@ public class ListVMPublishedServiceStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 

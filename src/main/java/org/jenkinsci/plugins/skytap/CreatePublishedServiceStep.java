@@ -94,12 +94,12 @@ public class CreatePublishedServiceStep extends SkytapAction {
 					expConfigurationFile);
 		}
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error retrieving configuration id: "
+			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
 			return false;
 		}
@@ -119,7 +119,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 			return false;
 		}
 
-		// build url to get interfaces associated with config/vm.
+		// build url to get interfaces associated with environment/vm.
 		String requestURL = buildGetInterfacesURL(runtimeVMID);
 
 		// build request
@@ -262,7 +262,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 				"interfaces");
 
 		JenkinsLogger
-				.log("Searching configuration's interfaces for interface with network name: "
+				.log("Searching environment's interfaces for interface with network name: "
 						+ netName);
 
 		Iterator itr = interfaceArray.iterator();
@@ -315,11 +315,11 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 	private Boolean preFlightSanityChecks() {
 
-		// check whether user entered both values for conf id/conf file
+		// check whether user entered both values for environment id/conf file
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -327,7 +327,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 

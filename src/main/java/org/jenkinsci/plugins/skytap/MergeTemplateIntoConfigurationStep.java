@@ -38,8 +38,8 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -71,7 +71,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 		JenkinsLogger
-				.defaultLogMessage("Merge Template into Configuration Step");
+				.defaultLogMessage("Merge Template into Environment Step");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 
@@ -105,12 +105,12 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 					expConfigFile);
 		}
 
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error obtaining runtime configuration id: "
+			JenkinsLogger.error("Error obtaining runtime environment id: "
 					+ e.getMessage());
 		}
 
@@ -126,8 +126,8 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 		JenkinsLogger.log("Template ID: " + runtimeTemplateID);
 		JenkinsLogger.log("Template File: " + expTemplateFile);
-		JenkinsLogger.log("Configuration ID: " + runtimeConfigurationID);
-		JenkinsLogger.log("Configuration File: " + expConfigurationFile);
+		JenkinsLogger.log("Environment ID: " + runtimeConfigurationID);
+		JenkinsLogger.log("Environment File: " + expConfigurationFile);
 
 		// build request url
 		String requestUrl = buildMergeRequestURL(runtimeTemplateID,
@@ -159,7 +159,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		JsonElement je = parser.parse(httpRespBody);
 		JsonObject jo = je.getAsJsonObject();
 
-		// save json object to the config file path
+		// save json object to the environment file path
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 		if (!expConfigFile.equals("")) {
@@ -176,7 +176,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 			} catch (IOException e) {
 
 				JenkinsLogger
-						.error("Skytap Plugin failed to save configuration to file: "
+						.error("Skytap Plugin failed to save environment to file: "
 							+ expConfigFile);
 				return false;
 			}
@@ -184,7 +184,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 
 		JenkinsLogger.log("Template " + runtimeTemplateID
-				+ " was successfully merged to configuration "
+				+ " was successfully merged to environment "
 				+ runtimeConfigurationID);
 
 		return true;
@@ -227,7 +227,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -235,14 +235,14 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 
-		// check whether no config file value was provided
+		// check whether no environment file value was provided
 		if (this.configFile.equals("")) {
 			JenkinsLogger
-					.log("No optional value was provided for a new configuration data save file. Continuing...");
+					.log("No optional value was provided for a new environment data save file. Continuing...");
 			return true;
 		}
 
@@ -253,7 +253,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
 			MergeTemplateIntoConfigurationStep.class,
-			"Merge Template into Configuration");
+			"Merge Template into Environment");
 
 	public String getConfigurationID() {
 		return configurationID;

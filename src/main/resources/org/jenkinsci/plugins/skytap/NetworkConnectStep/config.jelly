@@ -1,11 +1,11 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:html="jelly:html" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
-  	<f:entry title="Source Configuration ID" field="sourceNetworkConfigurationID" >
+  	<f:entry title="Source Environment ID" field="sourceNetworkConfigurationID" >
   		<f:textbox />
   		<p>- OR -</p>
   	</f:entry>
   	
-    <f:entry title="Source Configuration Data File" field="sourceNetworkConfigurationFile" >
+    <f:entry title="Source Environment Data File" field="sourceNetworkConfigurationFile" >
   		<f:textbox />
   		<p>- AND -</p> 
   	</f:entry>
@@ -21,12 +21,12 @@
    
 
    
-    <f:entry title="Target Configuration ID" field="targetNetworkConfigurationID" >
+    <f:entry title="Target Environment ID" field="targetNetworkConfigurationID" >
   		<f:textbox />
   		<p>- OR -</p>
   	</f:entry>
   	
-    <f:entry title="Target Configuration Data File" field="targetNetworkConfigurationFile" >
+    <f:entry title="Target Environment Data File" field="targetNetworkConfigurationFile" >
   		<f:textbox />
   		<p>- AND -</p>
   	</f:entry>

@@ -62,8 +62,8 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -87,7 +87,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 			SkytapGlobalVariables globalVars) {
 		
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Adding Configuration to Project Step");
+		JenkinsLogger.defaultLogMessage("Adding Environment to Project Step");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 				
 		JenkinsLogger.defaultLogMessage(projectName);
@@ -110,7 +110,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 					expConfigurationFile);
 		}
 		
-		// get runtime config id
+		// get runtime environment id
 		try {
 			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
@@ -136,8 +136,8 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 			return false;
 		}
 
-		JenkinsLogger.log("Configuration ID: " + runtimeConfigurationID);
-		JenkinsLogger.log("Configuration File: " + this.configurationFile);
+		JenkinsLogger.log("Environment ID: " + runtimeConfigurationID);
+		JenkinsLogger.log("Environment File: " + this.configurationFile);
 		JenkinsLogger.log("Project ID: " + runtimeProjectID);
 		JenkinsLogger.log("Project Name: " + this.projectName);
 
@@ -168,7 +168,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 		JenkinsLogger.log(httpRespBody);
 		JenkinsLogger.log("");
 		
-		JenkinsLogger.defaultLogMessage("Configuration " + runtimeConfigurationID + " was successfully added to project " + runtimeProjectID);
+		JenkinsLogger.defaultLogMessage("Environment " + runtimeConfigurationID + " was successfully added to project " + runtimeProjectID);
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		
 		return true;
@@ -202,15 +202,15 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 	 */
 	private Boolean preFlightSanityChecks(){
 
-		// check whether user entered both values for conf id/conf file
+		// check whether user entered both values for environment id/conf file
 		if(!this.configurationID.equals("") && !this.configurationFile.equals("")){
-			JenkinsLogger.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 		
-		// check whether we have neither conf id or file
+		// check whether we have neither environment id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
-			JenkinsLogger.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 		
@@ -231,7 +231,7 @@ public class AddConfigurationToProjectStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			AddConfigurationToProjectStep.class, "Add Configuration to Project");
+			AddConfigurationToProjectStep.class, "Add Environment to Project");
 	
 	public String getConfigurationID() {
 		return configurationID;

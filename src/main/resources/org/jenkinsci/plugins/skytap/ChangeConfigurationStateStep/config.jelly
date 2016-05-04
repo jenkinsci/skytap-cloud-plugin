@@ -2,14 +2,14 @@
 <f:entry name="targetRunState" title="Action" field="targetRunState">
 
 <select name="targetRunState">
-   <j:if test="${instance.targetRunState=='running'}"><option value="running" selected="SELECTED">Run Configuration</option></j:if>
-   <j:if test="${instance.targetRunState!='running'}"><option value="running">Run Configuration</option></j:if>
+   <j:if test="${instance.targetRunState=='running'}"><option value="running" selected="SELECTED">Run Environment</option></j:if>
+   <j:if test="${instance.targetRunState!='running'}"><option value="running">Run Environment</option></j:if>
    
-   <j:if test="${instance.targetRunState=='suspended'}"><option value="suspended" selected="SELECTED">Suspend Configuration</option></j:if>
-   <j:if test="${instance.targetRunState!='suspended'}"><option value="suspended">Suspend Configuration</option></j:if>
+   <j:if test="${instance.targetRunState=='suspended'}"><option value="suspended" selected="SELECTED">Suspend Environment</option></j:if>
+   <j:if test="${instance.targetRunState!='suspended'}"><option value="suspended">Suspend Environment</option></j:if>
    
-   <j:if test="${instance.targetRunState=='stopped'}"><option value="stopped" selected="SELECTED">Shutdown Configuration</option></j:if>
-   <j:if test="${instance.targetRunState!='stopped'}"><option value="stopped">Shutdown Configuration</option></j:if>
+   <j:if test="${instance.targetRunState=='stopped'}"><option value="stopped" selected="SELECTED">Shutdown Environment</option></j:if>
+   <j:if test="${instance.targetRunState!='stopped'}"><option value="stopped">Shutdown Environment</option></j:if>
 </select>
       
 </f:entry>
@@ -18,12 +18,12 @@
   		<f:checkbox name="skytap.haltOnFailedShutdown" checked="${instance.getHaltOnFailedShutdown()}" />
   	</f:entry>  
 
-  	<f:entry title="Configuration ID" field="configurationID" >
+  	<f:entry title="Environment ID" field="configurationID" >
   		<f:textbox />
   		<p>- OR -</p>
   	</f:entry>
   	
-    <f:entry title="Configuration File" field="configurationFile" >
+    <f:entry title="Environment File" field="configurationFile" >
   		<f:textbox />
   	</f:entry>
    

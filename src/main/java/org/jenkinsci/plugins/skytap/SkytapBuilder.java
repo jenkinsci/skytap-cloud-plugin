@@ -98,12 +98,12 @@ public class SkytapBuilder extends Builder {
         	try {
         		if(!configurationID.equals("")){Integer.parseInt(configurationID);}
         	  } catch (NumberFormatException e) {
-        	    return FormValidation.error("Please enter a valid integer for the configuration ID.");
+        	    return FormValidation.error("Please enter a valid integer for the environment ID.");
         	  }
         	
         	// if user has entered both values, slap them on the wrist
         	if(!configurationID.equals("") && !configurationFile.equals("")){
-        		return FormValidation.error("Please enter either a valid configuration ID or a valid configuration file. Build step will fail if both values are entered.");
+        		return FormValidation.error("Please enter either a valid environment ID or a valid environment file. Build step will fail if both values are entered.");
         	}
         	
     	    return FormValidation.ok();
@@ -154,7 +154,7 @@ public class SkytapBuilder extends Builder {
      *
      * <p>
      * See <tt>src/main/resources/hudson/plugins/hello_world/SkytapBuilder/*.jelly</tt>
-     * for the actual HTML fragment for the configuration screen.
+     * for the actual HTML fragment for the environment screen.
      */
     @Extension // This indicates to Jenkins that this is an implementation of an extension point.
     public static final class DescriptorImpl extends BuildStepDescriptor<Builder> {
@@ -171,7 +171,7 @@ public class SkytapBuilder extends Builder {
 		}
 
         /**
-         * This human readable name is used in the configuration screen.
+         * This human readable name is used in the environment screen.
          */
         public String getDisplayName() {
             return "Execute Skytap Action";

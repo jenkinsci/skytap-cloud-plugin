@@ -60,8 +60,8 @@ public class DeleteConfigurationStep extends SkytapAction {
 	@XStreamOmitField
 	private String authCredentials;
 
-	// the runtime config id will be set one of two ways:
-	// either the user has provided just a config id, so we use it,
+	// the runtime environment id will be set one of two ways:
+	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the
 	// id from the json element
@@ -84,7 +84,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		// build network listing url
 		String listNetworksURL = buildNetworkListURL(configId);
 
-		JenkinsLogger.log("Getting network list for configuration with id: "
+		JenkinsLogger.log("Getting network list for environment with id: "
 				+ configId);
 
 		// execute http get
@@ -203,7 +203,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
-		JenkinsLogger.defaultLogMessage("Delete Configuration");
+		JenkinsLogger.defaultLogMessage("Delete Environment");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
 
@@ -231,14 +231,14 @@ public class DeleteConfigurationStep extends SkytapAction {
 			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(
 					configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
-			JenkinsLogger.error("Error retrieving configuration id: "
+			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
 			return false;
 		}
 
 		// retrieve ids of any tunnels (connected networks) prior to deletion
 		JenkinsLogger
-				.log("Checking for any connected networks for configuration id: "
+				.log("Checking for any connected networks for environment id: "
 						+ runtimeConfigurationID);
 
 		ArrayList tunnelIdList = new ArrayList();
@@ -264,19 +264,19 @@ public class DeleteConfigurationStep extends SkytapAction {
 
 		}
 
-		JenkinsLogger.log("Sending delete request for configuration id "
+		JenkinsLogger.log("Sending delete request for environment id "
 				+ this.runtimeConfigurationID);
 
-		// attempt to delete config - if the resource is busy,
-		// and doesn't become available after the configured wait time,
+		// attempt to delete environment - if the resource is busy,
+		// and doesn't become available after the environment wait time,
 		// fail the build step
 		if (attemptDeleteConfiguration(runtimeConfigurationID) == false) {
-			JenkinsLogger.error("Configuration ID: " + runtimeConfigurationID
+			JenkinsLogger.error("Environment ID: " + runtimeConfigurationID
 					+ " could not be deleted. Failing build step.");
 			return false;
 		}
 
-		JenkinsLogger.defaultLogMessage("Configuration "
+		JenkinsLogger.defaultLogMessage("Environment "
 				+ runtimeConfigurationID + " was successfully deleted.");
 		JenkinsLogger
 				.defaultLogMessage("----------------------------------------");
@@ -286,14 +286,14 @@ public class DeleteConfigurationStep extends SkytapAction {
 
 	private Boolean attemptDeleteConfiguration(String confId) {
 
-		// build delete config url
+		// build delete environment url
 		String requestURL = buildRequestURL(confId);
 
 		// create request for Skytap API
 		HttpDelete hd = SkytapUtils.buildHttpDeleteRequest(requestURL,
 				this.authCredentials);
 
-		// repeat request until configuration
+		// repeat request until environment
 		// becomes available and can be deleted
 		String httpRespBody = "";
 		Boolean configDeletedSuccessfully = false;
@@ -354,7 +354,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		if (!this.configurationID.equals("")
 				&& !this.configurationFile.equals("")) {
 			JenkinsLogger
-					.error("Values were provided for both configuration ID and file. Please provide just one or the other.");
+					.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
 
@@ -362,7 +362,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		if (this.configurationFile.equals("")
 				&& this.configurationID.equals("")) {
 			JenkinsLogger
-					.error("No value was provided for configuration ID or file. Please provide either a valid Skytap configuration ID, or a valid configuration file.");
+					.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
 
@@ -379,6 +379,6 @@ public class DeleteConfigurationStep extends SkytapAction {
 
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
-			DeleteConfigurationStep.class, "Delete Configuration");
+			DeleteConfigurationStep.class, "Delete Environment");
 
 }
