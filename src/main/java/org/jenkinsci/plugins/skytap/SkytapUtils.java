@@ -383,7 +383,7 @@ public class SkytapUtils {
 				response = httpclient.execute(hr);
 
 				String responseStatusLine = response.getStatusLine().toString();
-				if (responseStatusLine.contains("423 Locked")) {
+				if ((responseStatusLine.contains("423 Locked")) || (responseStatusLine.contains("422 Unprocessable Entity"))) {
 					retryCount = retryCount + 1;
 					if (retryCount > 5) {
 						retryHttpRequest = false;
@@ -734,7 +734,7 @@ public class SkytapUtils {
 		JsonArray networkArray = (JsonArray) je.getAsJsonObject().get(
 				"networks");
 
-		JenkinsLogger.log("Searching configuration's networks for network: "
+		JenkinsLogger.log("Searching environments's networks for network: "
 				+ netName);
 
 		Iterator itr = networkArray.iterator();
@@ -757,7 +757,7 @@ public class SkytapUtils {
 		}
 
 		throw new SkytapException("No network matching name \"" + netName
-				+ "\"" + " is associated with configuration id " + confId + ".");
+				+ "\"" + " is associated with environments id " + confId + ".");
 	}
 
 }
