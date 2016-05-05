@@ -11,9 +11,10 @@
     </developer>
   </developers>
   <parent>
+
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.509.1</version>
+    <version>1.509.1</version><!-- which version of Jenkins is this plugin built against? -->
   </parent>
 
   <groupId>org.jenkins-ci.plugins</groupId>
@@ -22,18 +23,6 @@
   <version>2.03-SNAPSHOT</version>
   
   <packaging>hpi</packaging>
-
-  <properties>
-    <!--
-      explicitly specifying the latest version here because one we get from the parent POM
-      tends to lag behind a bit
-    <maven-hpi-plugin.version>1.112</maven-hpi-plugin.version>
-    -->
-    <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
-    <maven-hpi-plugin.version>1.95</maven-hpi-plugin.version>
-    <maven-deploy-plugin.version>2.6</maven-deploy-plugin.version>
-    <wagon-http.version>2.10</wagon-http.version>
-  </properties>
 
   <scm>
     <connection>scm:git:https://github.com/jenkinsci/skytap-cloud-plugin.git</connection>
@@ -51,7 +40,7 @@
        </releases>
        <snapshots>
           <enabled>false</enabled>
-       </snapshots> 
+       </snapshots>
     </repository>
   </repositories>
 
@@ -59,15 +48,25 @@
     <pluginRepository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>
-       <releases>
+      <releases>
           <enabled>true</enabled>
-      </releases>
-      <snapshots>
+       </releases>
+       <snapshots>
           <enabled>false</enabled>
-      </snapshots>
+       </snapshots>
     </pluginRepository>
   </pluginRepositories>
 
+  <properties>
+    <!--
+      explicitly specifying the latest version here because one we get from the parent POM
+      tends to lag behind a bit
+    -->
+    <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+    <maven-hpi-plugin.version>1.112</maven-hpi-plugin.version>
+    <maven-deploy-plugin.version>2.6</maven-deploy-plugin.version>
+    <wagon-http.version>2.10</wagon-http.version>
+  </properties>
   <dependencies>
   	<dependency>
   		<groupId>org.apache.httpcomponents</groupId>
@@ -85,7 +84,6 @@
   		<version>2.2.4</version>
   	</dependency>
   </dependencies>
-
   <build>
       <plugins>
         <plugin>
@@ -95,20 +93,20 @@
            <extensions>true</extensions>
             <executions>
                 <execution>
-	             <goals>
-	                    <goal>generate-taglib-interface</goal>
+                     <goals>
+                            <goal>generate-taglib-interface</goal>
                      </goals>
-          	</execution>
+                </execution>
             </executions>
          </plugin>
-	 <plugin>
-	     <groupId>org.apache.maven.plugins</groupId>
-	     <artifactId>maven-release-plugin</artifactId>
-	     <version>${maven-release-plugin.version}</version>
-	     <configuration>
-	         <goals>deploy</goals>
-	     </configuration>
-	  </plugin>
+         <plugin>
+             <groupId>org.apache.maven.plugins</groupId>
+             <artifactId>maven-release-plugin</artifactId>
+             <version>${maven-release-plugin.version}</version>
+             <configuration>
+                 <goals>deploy</goals>
+             </configuration>
+          </plugin>
           <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
@@ -118,7 +116,7 @@
                   </excludes>
               </configuration>
           </plugin>
-	  <!-- work-around for INFRA-588 -->
+          <!-- work-around for INFRA-588 -->
           <plugin>
            <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-deploy-plugin</artifactId>
@@ -132,7 +130,7 @@
               </dependency>
             </dependencies>
           </plugin>
-	  <!-- work-around for INFRA-588 -->
+          <!-- work-around for INFRA-588 -->
       </plugins>
   </build>
 
@@ -142,5 +140,5 @@
       <url>https://repo.jenkins-ci.org/releases</url>
     </repository>
   </distributionManagement>
-
 </project>
+
