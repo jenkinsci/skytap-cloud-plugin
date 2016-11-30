@@ -60,6 +60,8 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHttpResponse;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.conn.params.ConnRoutePNames;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -361,6 +363,34 @@ public class SkytapUtils {
 		boolean retryHttpRequest = true;
 		int retryCount = 1;
 		String responseString = "";
+		
+		//Proxy Support
+		boolean useproxy = false;
+		String proxyHost = System.getProperty("http.proxyHost");
+		String proxyPortStr = System.getProperty("http.proxyPort");
+		String proxyProtocol = null;
+		int proxyPort = 0;
+		HttpHost proxy = null;
+
+		if(proxyHost == null)
+		{
+			//Check for https settings
+			proxyHost = System.getProperty("https.proxyHost");
+			proxyPortStr = System.getProperty("https.proxyPort");
+
+				if(proxyHost != null)
+				{
+					//Https Proxy Found
+					proxyPort = Integer.parseInt(proxyPortStr);
+					proxyProtocol = "https";
+					useproxy = true;             
+				}
+		} else {
+				proxyPort = Integer.parseInt(proxyPortStr);
+				proxyProtocol = "http";
+				useproxy = true;
+		}
+
 		while (retryHttpRequest == true) {
 			HttpClient httpclient = new DefaultHttpClient();
 			//
@@ -370,6 +400,14 @@ public class SkytapUtils {
 					60000);
 			HttpConnectionParams.setSoTimeout(httpclient.getParams(), 60000);
 			//
+			//Check to see if a proxy is set
+			if (useproxy)
+			{
+				//Use proxy settings
+				proxy = new HttpHost(proxyHost, proxyPort, proxyProtocol);
+				httpclient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY,proxy);
+			}
+
 			responseString = "";
 			HttpResponse response = null;
 			try {
@@ -377,6 +415,9 @@ public class SkytapUtils {
 				SimpleDateFormat sdf = new SimpleDateFormat(
 						"yyyy-MM-dd:HH-mm-ss");
 				String myDateString = sdf.format(myDate);
+
+				if(useproxy)
+					JenkinsLogger.log(myDateString + "\n" + "Using proxy: " + proxyProtocol + "://" + proxyHost + ":" + proxyPort);
 
 				JenkinsLogger.log(myDateString + "\n" + "Executing Request: "
 						+ hr.getRequestLine());
