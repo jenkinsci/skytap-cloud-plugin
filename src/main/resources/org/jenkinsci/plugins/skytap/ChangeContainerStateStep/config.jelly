@@ -1,0 +1,35 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<f:entry name="targetContainerAction" title="Action" field="targetContainerAction">
+
+	<select name="targetContainerAction">
+   		<j:if test="${instance.targetContainerAction=='start'}"><option value="start" selected="SELECTED">Start Container</option></j:if>
+   		<j:if test="${instance.targetContainerAction!='start'}"><option value="start">Start Container</option></j:if>
+  	 
+   		<j:if test="${instance.targetContainerAction=='pause'}"><option value="pause" selected="SELECTED">Pause Container</option></j:if>
+   		<j:if test="${instance.targetContainerAction!='pause'}"><option value="pause">Pause Container</option></j:if>
+  	 
+   		<j:if test="${instance.targetContainerAction=='unpause'}"><option value="unpause" selected="SELECTED">Unpause Container</option></j:if>
+   		<j:if test="${instance.targetContainerAction!='unpause'}"><option value="unpause">Unpause Container</option></j:if>
+   
+   		<j:if test="${instance.targetContainerAction=='stop'}"><option value="stop" selected="SELECTED">Stop Container</option></j:if>
+   		<j:if test="${instance.targetContainerAction!='stop'}"><option value="stop">Stop Container</option></j:if>
+
+   		<j:if test="${instance.targetContainerAction=='kill'}"><option value="kill" selected="SELECTED">Kill Container</option></j:if>
+   		<j:if test="${instance.targetContainerAction!='kill'}"><option value="kill">Kill Container</option></j:if>
+	</select>
+      
+</f:entry>
+
+<f:entry title="Container ID" field="containerID" >
+	<f:textbox />
+	<p>- OR -</p>
+</f:entry>
+  	
+ <f:entry title="Container File" field="containerFile" >
+	<f:textbox />
+</f:entry>
+   
+</j:jelly>
+  
+  
+  

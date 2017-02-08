@@ -108,6 +108,23 @@ public class SkytapBuilder extends Builder {
         	
     	    return FormValidation.ok();
         	}
+
+        public FormValidation doCheckVMID(@QueryParameter String vmID, @QueryParameter String vmName) throws IOException, ServletException {
+        	
+        	// make sure the id is a valid number
+        	try {
+        		if(!vmID.equals("")){Integer.parseInt(vmID);}
+        	  } catch (NumberFormatException e) {
+        	    return FormValidation.error("Please enter a valid integer for the VM ID.");
+        	  }
+        	
+        	// if user has entered both values, slap them on the wrist
+        	if(!vmID.equals("") && !vmName.equals("")){
+        		return FormValidation.error("Please enter either a valid VM ID or a valid VM Name. Build step will fail if both values are entered.");
+        	}
+        	
+    	    return FormValidation.ok();
+        	}
                 
         public FormValidation doCheckProjectID(@QueryParameter String projectID, @QueryParameter String projectName ){
         	

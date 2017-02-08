@@ -1,0 +1,56 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+  	<f:entry title="Environment ID" field="configurationID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="Environment File" field="configurationFile" >
+  		<f:textbox />
+  		 <p>
+  		</p>
+   		<hr/>
+   		<p>
+   		</p>
+  	</f:entry>
+
+  	<f:entry title="VM ID" field="vmID" >
+  		<f:textbox />
+  		<p>- OR -</p>
+  	</f:entry>
+  	
+    <f:entry title="VM Name" field="vmName" >
+  		<f:textbox />
+  		 <p>
+  		</p>
+   		<hr/>
+   		<p>
+   		</p>
+  	</f:entry>
+  	
+  	<f:entry title="Container Registry Name" field="containerRegistryName" >
+  		<f:textbox />
+  	</f:entry>
+  	
+    <f:entry title="Repository Name" field="repositoryName" >
+  		<f:textbox />
+  	</f:entry>
+  	
+  	<f:entry title="Container Name" field="containerName" >
+  		<f:textbox />
+  	</f:entry>
+  	
+  	<f:entry title="Command" field="containerCommand" >
+  		<f:textbox />
+  	</f:entry>
+
+	<f:entry title="Expose All Ports" field="exposeAllPorts" >
+  		<f:checkbox name="skytap.exposeAllPorts" checked="${instance.getExposeAllPorts()}" />
+  	</f:entry>  
+  	
+  	 <f:entry title="Container Data Save Filename" field="containerSaveFilename" >
+  		<f:textbox />
+  	</f:entry>
+
+</j:jelly>

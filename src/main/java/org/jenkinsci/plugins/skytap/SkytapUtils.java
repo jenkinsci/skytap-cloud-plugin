@@ -165,6 +165,200 @@ public class SkytapUtils {
 		
 	}
 
+	public static String getContainerRegistryIdFromName(String containerRegistryName, String authCredentials) throws SkytapException {
+		
+		// build url to retrieve vm object by name, so we can extract the id
+		JenkinsLogger.log("Building request url ...");
+
+		int offset = 0;
+		int iteration = 1;
+		boolean registryListExists = true;
+		while (registryListExists) {
+			StringBuilder sb = new StringBuilder("https://cloud.skytap.com/v2/container_registries.json?count=100&offset=" + String.valueOf(offset));
+			String getContainerRegistryIdURL = sb.toString();
+		
+			// create request
+			HttpGet hg = SkytapUtils.buildHttpGetRequest(getContainerRegistryIdURL, authCredentials);
+		
+			// execute request
+			String hgResponse = "";
+		
+			hgResponse = SkytapUtils.executeHttpRequest(hg);
+
+			// check for errors
+			SkytapUtils.checkResponseForErrors(hgResponse);
+		
+			// find vm that matches name
+		
+			JsonParser parser = new JsonParser();
+			JsonElement je = parser.parse(hgResponse);
+			JsonArray registryArray = je.getAsJsonArray();
+			if (registryArray == null) {
+				registryListExists = false;
+			} else {
+		
+				JenkinsLogger.log("Iterating through container registry array " + String.valueOf(iteration) + " to match name: " + containerRegistryName);
+		
+				Iterator iter = registryArray.iterator();
+		
+				while(iter.hasNext()){
+					JsonObject registryObject = (JsonObject)iter.next();
+//					JenkinsLogger.log(registryObject.toString());
+					String currentName = registryObject.get("name").getAsString();
+					JenkinsLogger.log("Found container registry with name: " + currentName);
+			
+					if(currentName.equals(containerRegistryName)){
+						JenkinsLogger.log("Name matched. Retrieving registry id.");
+				
+						String rid = registryObject.get("id").getAsString();
+						JenkinsLogger.log("Container Registry ID: " + rid);
+						return rid;
+					}
+			
+				}
+		
+				offset = offset + 100;
+				iteration = iteration + 1;
+			}
+		}
+		// if we failed to match the name throw an exception
+		throw new SkytapException("No container registries were found matching name: " + containerRegistryName);
+		
+	}
+
+	public static String getVMContainerIdFromName(String confId, String vmId, String containerName, String authCredentials) throws SkytapException {
+		
+		int offset = 0;
+		int iteration = 1;
+		boolean containerListExists = true;
+		while (containerListExists) {
+			// build url to retrieve vm object by name, so we can extract the id
+			JenkinsLogger.log("Building request url ...");
+
+			StringBuilder sb = new StringBuilder("https://cloud.skytap.com/v2/");
+			sb.append("configurations/");
+			sb.append(confId);
+			sb.append("/containers?count=100&offset=" + String.valueOf(offset) + "&query=vm_id:");
+			sb.append(vmId);
+			sb.append("&query=name:");
+			sb.append(containerName);
+			String getVmIdURL = sb.toString();
+		
+			// create request
+			HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
+		
+			// execute request
+			String hgResponse = "";
+			
+			hgResponse = SkytapUtils.executeHttpRequest(hg);
+
+			// check for errors
+			SkytapUtils.checkResponseForErrors(hgResponse);
+		
+			// find container that matches name
+		
+			JsonParser parser = new JsonParser();
+			JsonElement je = parser.parse(hgResponse);
+			JsonArray containerArray = je.getAsJsonArray();
+		
+			if (containerArray == null) {
+				containerListExists = false;
+			} else {
+				JenkinsLogger.log("Iterating through container array " + String.valueOf(iteration) + " to match name: " + containerName);
+		
+				Iterator iter = containerArray.iterator();
+		
+				while(iter.hasNext()){
+					JsonObject containerObject = (JsonObject)iter.next();
+		//			JenkinsLogger.log(containerObject.toString());
+					String currentName = containerObject.get("name").getAsString();
+					JenkinsLogger.log("Found container with name: " + currentName);
+			
+					if(currentName.equals(containerName)){
+						JenkinsLogger.log("Name matched. Retrieving container id.");
+				
+						String containerId = containerObject.get("id").getAsString();
+						JenkinsLogger.log("Container ID: " + containerId);
+						return containerId;
+					}
+			
+				}
+
+				offset = offset + 100;
+				iteration = iteration + 1;
+			}
+		}
+		
+		// if we failed to match the name throw an exception
+		throw new SkytapException("No container was found matching name: " + containerName);
+		
+	}
+
+	public static String getEnvContainerIdFromName(String confId, String containerName, String authCredentials) throws SkytapException {
+		
+		int offset = 0;
+		int iteration = 1;
+		boolean containerListExists = true;
+		while (containerListExists) {
+		// build url to retrieve vm object by name, so we can extract the id
+			JenkinsLogger.log("Building request url ...");
+
+			StringBuilder sb = new StringBuilder("https://cloud.skytap.com/v2/");
+			sb.append("configurations/");
+			sb.append(confId);
+			sb.append("/containers?count=100&offset=" + String.valueOf(offset) + "&query=name:");
+			sb.append(containerName);
+			String getVmIdURL = sb.toString();
+		
+			// create request
+			HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
+		
+			// execute request
+			String hgResponse = "";
+		
+			hgResponse = SkytapUtils.executeHttpRequest(hg);
+
+			// check for errors
+			SkytapUtils.checkResponseForErrors(hgResponse);
+		
+			// find vm that matches name
+		
+			JsonParser parser = new JsonParser();
+			JsonElement je = parser.parse(hgResponse);
+			JsonArray containerArray = je.getAsJsonArray();
+			if (containerArray == null) {
+				containerListExists = false;
+			} else {
+		
+				JenkinsLogger.log("Iterating through container array " + String.valueOf(iteration) + " to match name: " + containerName);
+		
+				Iterator iter = containerArray.iterator();
+		
+				while(iter.hasNext()){
+					JsonObject containerObject = (JsonObject)iter.next();
+					JenkinsLogger.log(containerObject.toString());
+					String currentName = containerObject.get("name").getAsString();
+					JenkinsLogger.log("Found container with name: " + currentName);
+			
+					if(currentName.equals(containerName)){
+						JenkinsLogger.log("Name matched. Retrieving container id.");
+					
+						String containerId = containerObject.get("id").getAsString();
+						JenkinsLogger.log("Container ID: " + containerId);
+						return containerId;
+					}
+			
+				}
+				offset = offset + 100;
+				iteration = iteration + 1;
+
+			}
+		}
+		
+		// if we failed to match the name throw an exception
+		throw new SkytapException("No container was found matching name: " + containerName);
+		
+	}
 	
 	/**
 	 * This is a utility method used to get the json object in json file used
