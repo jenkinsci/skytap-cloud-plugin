@@ -27,6 +27,7 @@ import hudson.model.BuildListener;
 import hudson.util.VariableResolver;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.InterruptedIOException;
@@ -928,7 +929,7 @@ public class SkytapUtils {
 			String workspacePath = SkytapUtils.expandEnvVars(build,
 					"${WORKSPACE}");
 
-			savefile = workspacePath + "/" + savefile;
+			savefile = workspacePath + File.separator + savefile;
 			savefile = fu.separatorsToSystem(savefile);
 			return savefile;
 
