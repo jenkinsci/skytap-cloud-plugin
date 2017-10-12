@@ -49,7 +49,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	// number of times it will poll Skytap to see if correct runstate has been
 	// reached
-	private static final int NUMBER_OF_RETRIES = 5;
+	private static final int NUMBER_OF_RETRIES = 7;
 
 	// base retry interval - on every retry it will double the current value,
 	// backing off
@@ -164,9 +164,16 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			// sleep to give Skytap time to change VM runstate
 			try {
 
-				int sleepTime = BASE_RETRY_INTERVAL_SECONDS * i;
+				//TODO: the backoff methodology for responding
+				// to busy runstates needs to be reconsidered
+				// but a change to a simple exponential backoff
+				// will do for now-- jchenry
+				int sleepTime = (2^i*BASE_RETRY_INTERVAL_SECONDS);
 
 				JenkinsLogger.log("Sleeping for " + sleepTime + " seconds.");
+
+
+
 				Thread.sleep(sleepTime * 1000);
 			} catch (InterruptedException e1) {
 				JenkinsLogger.error(e1.getMessage());
@@ -174,7 +181,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 			// retrieve the runstate
 			JenkinsLogger.log("Checking environment runstate..");
-			
+
 			
 			try {
 				currentRunState = getCurrentConfigurationRunstate(runtimeConfigurationID);
