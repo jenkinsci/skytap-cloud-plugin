@@ -3,13 +3,13 @@ package org.jenkinsci.plugins.skytap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import org.apache.http.client.methods.HttpGet;
 import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapAction;
@@ -156,17 +156,18 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 			try {
 
 				// output to the file system
-				File file = new File(expUrlFile);
-				Writer output = null;
-				output = new BufferedWriter(new FileWriter(file));
-				output.write(publishedUrl);
-				output.close();
+				FilePath fp = new FilePath(build.getWorkspace(), expUrlFile);
+				fp.write(publishedUrl);
 
 			} catch (IOException e) {
+				JenkinsLogger.error("Error: " + e.getMessage());
 
 				JenkinsLogger
 						.error("Skytap Plugin failed to save url to file: "
 								+ expUrlFile);
+				return false;
+			} catch (InterruptedException e) {
+				JenkinsLogger.error("Error: " + e.getMessage());
 				return false;
 			}
 
@@ -185,30 +186,30 @@ public class ListPublishedURLForConfigurationStep extends SkytapAction {
 		while (iter.hasNext()) {
 
 			JsonElement publishSetElement = (JsonElement) iter.next();
-			
+
 			// check for name match
 			String pubSetName = publishSetElement.getAsJsonObject().get("name").getAsString();
 			JenkinsLogger.log("Sharing Portal Name: " + pubSetName);
-			
+
 			if(pubSetName.equals(name)){
-			
+
 			JenkinsLogger.log("Sharing Portal Name matched: " + pubSetName);
-				
+
 			String publishSetType = publishSetElement.getAsJsonObject().get("publish_set_type").getAsString();
-			
+
 			// if publish set type is multiple url, throw an error
 			if ( publishSetType.equals("multiple_url") ){
 				throw new SkytapException("URLs for individual VMs are not supported.");
 			}
-			
+
 			// if publish set type is single url
 			if ( publishSetType.equals("single_url") ){
 				String desktopsUrl = publishSetElement.getAsJsonObject().get("desktops_url").getAsString();
 				return desktopsUrl;
 			}
-			
+
 			}
-			
+
 		}
 
 		// no match?

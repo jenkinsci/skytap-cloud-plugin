@@ -4,7 +4,6 @@ package org.jenkinsci.plugins.skytap;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -166,18 +165,18 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
 				expConfigFile);
 
-			Writer output = null;
-			File file = new File(expConfigFile);
+			FilePath fp = new FilePath(build.getWorkspace(), expConfigFile);
 			try {
-
-				output = new BufferedWriter(new FileWriter(file));
-				output.write(httpRespBody);
-				output.close();
+				fp.write(httpRespBody);
 			} catch (IOException e) {
+				JenkinsLogger.error("Error: " + e.getMessage());
 
 				JenkinsLogger
 						.error("Skytap Plugin failed to save environment to file: "
 							+ expConfigFile);
+				return false;
+			} catch (InterruptedException e) {
+				JenkinsLogger.error("Error: " + e.getMessage());
 				return false;
 			}
 		}

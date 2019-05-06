@@ -6,7 +6,6 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -14,6 +13,7 @@ import java.util.Iterator;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -158,7 +158,7 @@ public class CreateContainerStep extends SkytapAction {
 		bodyString.append("\"repository\":\"" + repositoryName + "\"");
 		if (!containerName.isEmpty()) {
 			bodyString.append(",\"name\":\"" + containerName + "\"");
-		} 
+		}
 		bodyString.append(",");
 		bodyString.append("\"operation\": {");
 		if (exposeAllPorts) {
@@ -168,14 +168,14 @@ public class CreateContainerStep extends SkytapAction {
 		}
 		if (!containerCommand.isEmpty()) {
 			bodyString.append(",\"command\":\"" + containerCommand + "\"");
-		} 
-		
+		}
+
 		bodyString.append("}");
 		bodyString.append("}");
 
 		String jsonString = bodyString.toString();
 //		JenkinsLogger.log("DEBUG BodyString = " + jsonString);
-		
+
 
 		InputStream stream;
 		try {
@@ -245,17 +245,16 @@ public class CreateContainerStep extends SkytapAction {
 
 		try {
 
-			// output to the file system
-			File file = new File(expContainerSaveFile);
-			Writer output = null;
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(postResponse);
-			output.close();
+			FilePath fp = new FilePath(build.getWorkspace(), expContainerSaveFile);
+			fp.write(postResponse);
 
 		} catch (IOException e) {
-
+			JenkinsLogger.error("Error: " + e.getMessage());
 			JenkinsLogger.error("Skytap Plugin failed to save url to file: "
 					+ expContainerSaveFile);
+			return false;
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 			return false;
 		}
 

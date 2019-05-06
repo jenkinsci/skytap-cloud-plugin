@@ -18,13 +18,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -32,6 +31,7 @@ import java.util.Iterator;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.http.client.methods.HttpPost;
@@ -53,24 +53,24 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 	private final String templateName;
 	private final String templateDescription;
 	private final String templateSaveFilename;
-	
+
 	// these vars will be initialized when the step is run
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
-	
+
 	@XStreamOmitField
 	private String authCredentials;
-	
+
 	// the runtime environment id will be set one of two ways:
 	// either the user has provided just a environment id, so we use it,
 	// or the user provided a file, in which case we read the file and extract
 	// the id from the json element
 	@XStreamOmitField
 	private String runtimeConfigurationID;
-	
+
 	@XStreamOmitField
 	private String runtimeTemplateID;
-	
+
 	@DataBoundConstructor
 	public CreateTemplateFromConfigurationStep(String configurationID, String configurationFile,
 			String templateName, String templateDescription,
@@ -82,27 +82,27 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		this.templateDescription = templateDescription;
 		this.templateName = templateName;
 		this.templateSaveFilename = templateSaveFilename;
-		
+
 	}
-	
+
 	public Boolean executeStep(AbstractBuild build,
 			SkytapGlobalVariables globalVars) {
 
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		JenkinsLogger.defaultLogMessage("Creating Template from Environment");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		
+
 		if(preFlightSanityChecks()==false){
 			return false;
 		}
-		
+
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
-		
+
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
-		
+
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 
@@ -113,14 +113,14 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		String expTemplateFile = SkytapUtils.expandEnvVars(build, templateSaveFilename);
 		String expTemplateName = SkytapUtils.expandEnvVars(build, templateName);
 		String expTemplateDescription = SkytapUtils.expandEnvVars(build, templateDescription);
-		
+
 		try {
 			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(this.configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e2) {
 			JenkinsLogger.error("Error obtaining environment id: " + e2.getMessage());
 			return false;
 		}
-		
+
 		JenkinsLogger.log("Runtime Environment ID: " + this.runtimeConfigurationID);
 
 		try {
@@ -136,7 +136,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 			JenkinsLogger.error("Template creation failed.");
 			return false;
 		}
-		
+
 		// update the template with name and description
 		String httpRespBody;
 		try {
@@ -145,36 +145,34 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 			JenkinsLogger.error("Skytap Exception: " + e1.getMessage());
 			return false;
 		}
-	
+
 		// save to template file path
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(httpRespBody);
 		JsonObject jo = je.getAsJsonObject();
 		jo = je.getAsJsonObject();
 
-		Writer output = null;
-		
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 		expTemplateFile = SkytapUtils.convertFileNameToFullPath(build, expTemplateFile);
-		
-		// output to the file system
-		File file = new File(expTemplateFile);
-		
-		try {
 
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(httpRespBody);
-			output.close();
-		
+		// output to the file system
+		FilePath fp = new FilePath(build.getWorkspace(), expTemplateFile);
+		try {
+			fp.write(httpRespBody);
+
 		} catch (IOException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 
 			JenkinsLogger
 					.error("Skytap Plugin failed to save template to file: "
 							+ expTemplateFile);
 			return false;
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
+			return false;
 		}
-		
+
 		// Sleep for a 10 seconds to make sure the Template is stable, then we can exit
 		try {
 			Thread.sleep(10000);
@@ -186,28 +184,28 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		JenkinsLogger
 				.defaultLogMessage("Template " + expTemplateName + " successfully created and saved to file: "
 						+ expTemplateFile);
-		
+
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		return true;
-		
+
 	}
-	
+
 	private void sendTemplateCreationRequest(String configId) throws SkytapException {
-		
+
 		JenkinsLogger.log("Sending Template Creation Request for Environment " + configId);
-		
+
 		// build request for initial template creation
 		String templateCreateRequestUrl = buildRequestCreationURL(configId);
-		
+
 		// create request for Skytap API
 		HttpPost hp = SkytapUtils.buildHttpPostRequest(templateCreateRequestUrl,
 				this.authCredentials);
 
 		// execute request
 		String httpRespBody = SkytapUtils.executeHttpRequest(hp);
-		
+
 		SkytapUtils.checkResponseForErrors(httpRespBody);
-		
+
 		// get id and name of newly created template
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(httpRespBody);
@@ -215,27 +213,27 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		String newName = je.getAsJsonObject().get("name").getAsString();
 
 		JenkinsLogger.log("New Template created with id: " + this.runtimeTemplateID + " - name: " + newName);
-						
+
 	}
-	
+
     private String sendTemplateUpdateRequest(String templateId, String name, String desc) throws SkytapException {
-    	
+
     	JenkinsLogger.log("Sending Template Update Request for Template " + templateId);
     	JenkinsLogger.log("Updating Template with name: " + name + " and description: " + desc);
-    		
+
     	String reqUrl = buildRequestUpdateURL(templateId, name, desc);
-    	
+
     	HttpPut hp = SkytapUtils.buildHttpPutRequest(reqUrl, this.authCredentials);
-    	
+
     	String httpResponse = SkytapUtils.executeHttpRequest(hp);
 
     	return httpResponse;
     }
-    
+
     @SuppressWarnings("deprecation")
 	private String buildRequestUpdateURL(String templateId, String name, String desc){
 		StringBuilder sb = new StringBuilder("https://cloud.skytap.com/");
-		
+
 		//TODO: sanitize url parameters (spaces, special characters etc.)
 		sb.append("templates/");
 		sb.append(templateId);
@@ -243,29 +241,29 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		sb.append(URLEncoder.encode(name));
 		sb.append("&description=");
 		sb.append(URLEncoder.encode(desc));
-		
+
 		return sb.toString();
 
 		//https://cloud.skytap.com/templates/298117?name=sometesttemplate&description=whateverdude
     }
-    
+
 	private String buildRequestCreationURL(String configId){
-		
+
 		StringBuilder sb = new StringBuilder("https://cloud.skytap.com/");
 		sb.append("templates?configuration_id=");
 		sb.append(configId);
 
 		return sb.toString();
-		
+
 	}
-	
+
 
 	/**
 	 * This method is a final check to ensure that user inputs are legitimate.
-	 * Any situation where the user has entered both inputs in an either/or scenario 
+	 * Any situation where the user has entered both inputs in an either/or scenario
 	 * will fail the build. If the user has left both blank where we need one, it will
 	 * also fail.
-	 * 
+	 *
 	 * @return Boolean sanityCheckPassed
 	 */
 	private Boolean preFlightSanityChecks(){
@@ -275,21 +273,21 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
-		
+
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
 			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			return false;
 		}
-		
+
 		if(this.templateName.equals("") || this.templateSaveFilename.equals("")){
 			JenkinsLogger.error("Please provide a template name and a valid filename to save to.");
 			return false;
 		}
-		
+
 		return true;
 	}
-	
+
 	public String getConfigurationID() {
 		return configurationID;
 	}
@@ -313,5 +311,5 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 	@Extension
 	public static final SkytapActionDescriptor D = new SkytapActionDescriptor(
 			CreateTemplateFromConfigurationStep.class, "Create Template from Environment");
-	
+
 }
