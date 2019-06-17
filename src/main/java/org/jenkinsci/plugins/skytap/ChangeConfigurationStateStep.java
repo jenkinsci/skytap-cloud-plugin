@@ -18,7 +18,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import java.io.FileNotFoundException;
@@ -59,7 +59,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	@XStreamOmitField
 	private SkytapGlobalVariables globalVars;
-	
+
 	@XStreamOmitField
 	private String authCredentials;
 
@@ -90,18 +90,18 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		JenkinsLogger.defaultLogMessage("Changing Environment State");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		
+
 		if(preFlightSanityChecks()==false){
 			return false;
 		}
-		
+
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// reset step parameters with env vars resolved at runtime
 		String expConfigurationFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
-		
+
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 
@@ -117,10 +117,10 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			JenkinsLogger.error("Error obtaining runtime id: " + e.getMessage());
 			return false;
 		}
-		
+
 		// check current runstate of Skytap environment
 		String currentRunState = "";
-				
+
 		try {
 			currentRunState = getCurrentConfigurationRunstate(runtimeConfigurationID);
 		} catch (SkytapException e2) {
@@ -168,7 +168,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 				// to busy runstates needs to be reconsidered
 				// but a change to a simple exponential backoff
 				// will do for now-- jchenry
-				int sleepTime = (2^i*BASE_RETRY_INTERVAL_SECONDS);
+				int sleepTime = (int)Math.pow(2,i)*BASE_RETRY_INTERVAL_SECONDS;
 
 				JenkinsLogger.log("Sleeping for " + sleepTime + " seconds.");
 
@@ -182,14 +182,14 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			// retrieve the runstate
 			JenkinsLogger.log("Checking environment runstate..");
 
-			
+
 			try {
 				currentRunState = getCurrentConfigurationRunstate(runtimeConfigurationID);
 			} catch (SkytapException e) {
 				JenkinsLogger.error("Error retrieving current runstate: " + e.getMessage());
 			}
-			
-			
+
+
 			JenkinsLogger.log("Current runstate=" + currentRunState);
 
 			// did it succeed? if so step succeeds, if not retry the state
@@ -207,9 +207,9 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 				JenkinsLogger.defaultLogMessage("----------------------------------------");
 				return true;
 			} else {
-				
+
 				// send another request but only if state is not 'busy'
-				
+
 				if(!currentRunState.equals("busy")){
 				sendStateChangeRequest(runtimeConfigurationID, targetRunState);
 				}
@@ -242,13 +242,13 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 			// check one more time
 			String currentState = "";
-			
+
 			try {
 				currentState = getCurrentConfigurationRunstate(runtimeConfigurationID);
 			} catch (SkytapException e) {
 				JenkinsLogger.error("Error getting runstate: " + e.getMessage());
 			}
-			
+
 			JenkinsLogger.log("Current state: " + currentState);
 			if (currentState.equals("stopped")) {
 				JenkinsLogger.defaultLogMessage("VM powered down successfully.");
@@ -265,13 +265,13 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 		// if we've made it to here without returning true fail the step
 		return false;
 	}
-	
+
 	/**
 	 * This method is a final check to ensure that user inputs are legitimate.
-	 * Any situation where the user has entered both inputs in an either/or scenario 
+	 * Any situation where the user has entered both inputs in an either/or scenario
 	 * will fail the build. If the user has left both blank where we need one, it will
 	 * also fail.
-	 * 
+	 *
 	 * @return Boolean sanityCheckPassed
 	 */
 	private Boolean preFlightSanityChecks(){
@@ -282,17 +282,17 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 			JenkinsLogger.defaultLogMessage("----------------------------------------");
 			return false;
 		}
-		
+
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
 			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
 			JenkinsLogger.defaultLogMessage("----------------------------------------");
 			return false;
 		}
-				
+
 		return true;
 	}
-	
+
 	private void sendStateChangeRequest(String confId, String tgtState) {
 
 		JenkinsLogger.log("Sending state change request for environment id "
@@ -307,7 +307,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 		// execute request
 		String httpRespBody = "";
-		
+
 		try {
 			SkytapUtils.executeHttpRequest(hp);
 		} catch (SkytapException e1) {
@@ -337,7 +337,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 	/**
 	 * Utility method to ensure that Skytap will permit you to change between
 	 * the current state and your target state.
-	 * 
+	 *
 	 * @param desiredState
 	 * @param targetState
 	 * @return
@@ -366,7 +366,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 	/**
 	 * This method checks the current runstate of the specified Skytap
 	 * environment
-	 * 
+	 *
 	 * @param configId
 	 * @return currentRunstate
 	 */
@@ -386,16 +386,16 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 		// execute HTTP GET request
 		String getResponse = "";
-		
-		
+
+
 		try {
 			getResponse = SkytapUtils.executeHttpRequest(hg);
 		} catch (Exception e) {
 			throw new SkytapException(e.getMessage());
 		}
-		
+
 		String skytapRunstate = "";
-				
+
 		try {
 			skytapRunstate = SkytapUtils.getValueFromJsonResponseBody(getResponse, "runstate");
 		} catch (NullPointerException ex) {

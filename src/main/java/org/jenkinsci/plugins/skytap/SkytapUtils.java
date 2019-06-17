@@ -18,7 +18,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import hudson.EnvVars;
@@ -30,6 +30,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+
 import java.io.InterruptedIOException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +38,8 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+
+import hudson.FilePath;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FilenameUtils;
@@ -75,7 +78,7 @@ public class SkytapUtils {
 	 * This method is used to enable Jenkins variable expansion. The user would
 	 * include Jenkins variables such as ${BUILD_ID} and these are resolved at
 	 * runtime, with the expanded string being used for all plugin actions.
-	 * 
+	 *
 	 * @param build
 	 * @param targetString
 	 * @return
@@ -112,9 +115,9 @@ public class SkytapUtils {
 		return expandedString;
 	}
 
-	
+
 	public static String getVMIDFromName(String confId, String vname, String authCredentials) throws SkytapException {
-		
+
 		// build url to retrieve vm object by name, so we can extract the id
 		JenkinsLogger.log("Building request url ...");
 
@@ -123,51 +126,51 @@ public class SkytapUtils {
 		sb.append(confId);
 		sb.append("/vms");
 		String getVmIdURL = sb.toString();
-		
+
 		// create request
 		HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
-		
+
 		// execute request
 		String hgResponse = "";
-		
+
 		hgResponse = SkytapUtils.executeHttpRequest(hg);
 
 		// check for errors
 		SkytapUtils.checkResponseForErrors(hgResponse);
-		
+
 		// find vm that matches name
-		
+
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(hgResponse);
 		JsonArray vmArray = je.getAsJsonArray();
-		
+
 		JenkinsLogger.log("Iterating through vm array to match name: " + vname);
-		
+
 		Iterator iter = vmArray.iterator();
-		
+
 		while(iter.hasNext()){
 			JsonObject vmObject = (JsonObject)iter.next();
 			JenkinsLogger.log(vmObject.toString());
 			String currentName = vmObject.get("name").getAsString();
 			JenkinsLogger.log("Found VM with name: " + currentName);
-			
+
 			if(currentName.equals(vname)){
 				JenkinsLogger.log("Name matched. Retrieving vm id.");
-				
+
 				String vid = vmObject.get("id").getAsString();
 				JenkinsLogger.log("VM ID: " + vid);
 				return vid;
 			}
-			
+
 		}
-		
+
 		// if we failed to match the name throw an exception
 		throw new SkytapException("No vms were found matching name: " + vname);
-		
+
 	}
 
 	public static String getContainerRegistryIdFromName(String containerRegistryName, String authCredentials) throws SkytapException {
-		
+
 		// build url to retrieve vm object by name, so we can extract the id
 		JenkinsLogger.log("Building request url ...");
 
@@ -177,58 +180,58 @@ public class SkytapUtils {
 		while (registryListExists) {
 			StringBuilder sb = new StringBuilder("https://cloud.skytap.com/v2/container_registries.json?count=100&offset=" + String.valueOf(offset));
 			String getContainerRegistryIdURL = sb.toString();
-		
+
 			// create request
 			HttpGet hg = SkytapUtils.buildHttpGetRequest(getContainerRegistryIdURL, authCredentials);
-		
+
 			// execute request
 			String hgResponse = "";
-		
+
 			hgResponse = SkytapUtils.executeHttpRequest(hg);
 
 			// check for errors
 			SkytapUtils.checkResponseForErrors(hgResponse);
-		
+
 			// find vm that matches name
-		
+
 			JsonParser parser = new JsonParser();
 			JsonElement je = parser.parse(hgResponse);
 			JsonArray registryArray = je.getAsJsonArray();
 			if (registryArray == null) {
 				registryListExists = false;
 			} else {
-		
+
 				JenkinsLogger.log("Iterating through container registry array " + String.valueOf(iteration) + " to match name: " + containerRegistryName);
-		
+
 				Iterator iter = registryArray.iterator();
-		
+
 				while(iter.hasNext()){
 					JsonObject registryObject = (JsonObject)iter.next();
 //					JenkinsLogger.log(registryObject.toString());
 					String currentName = registryObject.get("name").getAsString();
 					JenkinsLogger.log("Found container registry with name: " + currentName);
-			
+
 					if(currentName.equals(containerRegistryName)){
 						JenkinsLogger.log("Name matched. Retrieving registry id.");
-				
+
 						String rid = registryObject.get("id").getAsString();
 						JenkinsLogger.log("Container Registry ID: " + rid);
 						return rid;
 					}
-			
+
 				}
-		
+
 				offset = offset + 100;
 				iteration = iteration + 1;
 			}
 		}
 		// if we failed to match the name throw an exception
 		throw new SkytapException("No container registries were found matching name: " + containerRegistryName);
-		
+
 	}
 
 	public static String getVMContainerIdFromName(String confId, String vmId, String containerName, String authCredentials) throws SkytapException {
-		
+
 		int offset = 0;
 		int iteration = 1;
 		boolean containerListExists = true;
@@ -244,59 +247,59 @@ public class SkytapUtils {
 			sb.append("&query=name:");
 			sb.append(containerName);
 			String getVmIdURL = sb.toString();
-		
+
 			// create request
 			HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
-		
+
 			// execute request
 			String hgResponse = "";
-			
+
 			hgResponse = SkytapUtils.executeHttpRequest(hg);
 
 			// check for errors
 			SkytapUtils.checkResponseForErrors(hgResponse);
-		
+
 			// find container that matches name
-		
+
 			JsonParser parser = new JsonParser();
 			JsonElement je = parser.parse(hgResponse);
 			JsonArray containerArray = je.getAsJsonArray();
-		
+
 			if (containerArray == null) {
 				containerListExists = false;
 			} else {
 				JenkinsLogger.log("Iterating through container array " + String.valueOf(iteration) + " to match name: " + containerName);
-		
+
 				Iterator iter = containerArray.iterator();
-		
+
 				while(iter.hasNext()){
 					JsonObject containerObject = (JsonObject)iter.next();
 		//			JenkinsLogger.log(containerObject.toString());
 					String currentName = containerObject.get("name").getAsString();
 					JenkinsLogger.log("Found container with name: " + currentName);
-			
+
 					if(currentName.equals(containerName)){
 						JenkinsLogger.log("Name matched. Retrieving container id.");
-				
+
 						String containerId = containerObject.get("id").getAsString();
 						JenkinsLogger.log("Container ID: " + containerId);
 						return containerId;
 					}
-			
+
 				}
 
 				offset = offset + 100;
 				iteration = iteration + 1;
 			}
 		}
-		
+
 		// if we failed to match the name throw an exception
 		throw new SkytapException("No container was found matching name: " + containerName);
-		
+
 	}
 
 	public static String getEnvContainerIdFromName(String confId, String containerName, String authCredentials) throws SkytapException {
-		
+
 		int offset = 0;
 		int iteration = 1;
 		boolean containerListExists = true;
@@ -310,67 +313,68 @@ public class SkytapUtils {
 			sb.append("/containers?count=100&offset=" + String.valueOf(offset) + "&query=name:");
 			sb.append(containerName);
 			String getVmIdURL = sb.toString();
-		
+
 			// create request
 			HttpGet hg = SkytapUtils.buildHttpGetRequest(getVmIdURL, authCredentials);
-		
+
 			// execute request
 			String hgResponse = "";
-		
+
 			hgResponse = SkytapUtils.executeHttpRequest(hg);
 
 			// check for errors
 			SkytapUtils.checkResponseForErrors(hgResponse);
-		
+
 			// find vm that matches name
-		
+
 			JsonParser parser = new JsonParser();
 			JsonElement je = parser.parse(hgResponse);
 			JsonArray containerArray = je.getAsJsonArray();
 			if (containerArray == null) {
 				containerListExists = false;
 			} else {
-		
+
 				JenkinsLogger.log("Iterating through container array " + String.valueOf(iteration) + " to match name: " + containerName);
-		
+
 				Iterator iter = containerArray.iterator();
-		
+
 				while(iter.hasNext()){
 					JsonObject containerObject = (JsonObject)iter.next();
 					JenkinsLogger.log(containerObject.toString());
 					String currentName = containerObject.get("name").getAsString();
 					JenkinsLogger.log("Found container with name: " + currentName);
-			
+
 					if(currentName.equals(containerName)){
 						JenkinsLogger.log("Name matched. Retrieving container id.");
-					
+
 						String containerId = containerObject.get("id").getAsString();
 						JenkinsLogger.log("Container ID: " + containerId);
 						return containerId;
 					}
-			
+
 				}
 				offset = offset + 100;
 				iteration = iteration + 1;
 
 			}
 		}
-		
+
 		// if we failed to match the name throw an exception
 		throw new SkytapException("No container was found matching name: " + containerName);
-		
+
 	}
-	
+
 	/**
 	 * This is a utility method used to get the json object in json file used
 	 * for configs, templates, etc.
-	 * 
+	 *
 	 * @param filepath
 	 * @return
 	 */
 	public static JsonObject getJsonObjectFromFile(String filepath) {
 
 		JsonObject jo = null;
+		FilePath fp = new FilePath(filepath);
 
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(filepath));
@@ -398,7 +402,7 @@ public class SkytapUtils {
 	/**
 	 * This is a utility method to help retrieve a json element from the
 	 * response body.
-	 * 
+	 *
 	 * @param jsonRespBody
 	 * @return
 	 */
@@ -418,7 +422,7 @@ public class SkytapUtils {
 	/**
 	 * Takes the Skytap auth credentials and encodes them so they can be used in
 	 * requests to the API
-	 * 
+	 *
 	 * @param unencodedCredential
 	 * @return
 	 */
@@ -435,7 +439,7 @@ public class SkytapUtils {
 	/**
 	 * Retrieves user id and auth key from the project build environment,
 	 * encodes and returns encoded credential string to the user.
-	 * 
+	 *
 	 * @param AbstractBuild
 	 * @return String
 	 */
@@ -454,7 +458,7 @@ public class SkytapUtils {
 	/**
 	 * This method packages an http get request object, given a url and the
 	 * encoded Skytap authorization token.
-	 * 
+	 *
 	 * @param requestUrl
 	 * @param AuthToken
 	 * @return
@@ -476,7 +480,7 @@ public class SkytapUtils {
 	/**
 	 * This method packages an http post request object, given a url and the
 	 * encoded Skytap authorization token.
-	 * 
+	 *
 	 * @param requestUrl
 	 * @param AuthToken
 	 * @return
@@ -499,7 +503,7 @@ public class SkytapUtils {
 	/**
 	 * This method returns an http put request object, given a url and the
 	 * encoded Skytap authorization token.
-	 * 
+	 *
 	 * @param requestUrl
 	 * @param AuthToken
 	 * @return
@@ -522,7 +526,7 @@ public class SkytapUtils {
 	/**
 	 * This method returns an http delete request object, given a url and the
 	 * encoded Skytap authorization token.
-	 * 
+	 *
 	 * @param requestUrl
 	 * @param AuthToken
 	 * @return
@@ -545,7 +549,7 @@ public class SkytapUtils {
 	/**
 	 * Utility method to execute any type of http request (except delete), to
 	 * catch any exceptions thrown and return the response string.
-	 * 
+	 *
 	 * @param hr
 	 * @return
 	 * @throws SkytapException
@@ -558,7 +562,7 @@ public class SkytapUtils {
 		boolean retryHttpRequest = true;
 		int retryCount = 1;
 		String responseString = "";
-		
+
 		//Proxy Support
 		boolean useproxy = false;
 		String proxyHost = System.getProperty("http.proxyHost");
@@ -578,7 +582,7 @@ public class SkytapUtils {
 					//Https Proxy Found
 					proxyPort = Integer.parseInt(proxyPortStr);
 					proxyProtocol = "https";
-					useproxy = true;             
+					useproxy = true;
 				}
 		} else {
 				proxyPort = Integer.parseInt(proxyPortStr);
@@ -693,7 +697,7 @@ public class SkytapUtils {
 	/**
 	 * Utility method used to execute an http delete. Returns the status line
 	 * which can be parsed as desired by the caller.
-	 * 
+	 *
 	 * @param hd
 	 * @return
 	 * @throws SkytapException
@@ -741,7 +745,7 @@ public class SkytapUtils {
 	/**
 	 * Utility method to extract errors, if any, from the Skytap json response,
 	 * and throw an exception which can be handled by the caller.
-	 * 
+	 *
 	 * @param response
 	 * @throws SkytapException
 	 */
@@ -821,7 +825,7 @@ public class SkytapUtils {
 	/**
 	 * This method is used to obtain an id. If a file was provided, it extracts
 	 * the id from there. Otherwise it just uses the id provided by the user.
-	 * 
+	 *
 	 * @param confId
 	 * @return runtimeConfigurationId
 	 */
@@ -856,7 +860,7 @@ public class SkytapUtils {
 
 	/**
 	 * Makes call to skytap to retrieve the id of a named project.
-	 * 
+	 *
 	 * @param projName
 	 * @param authCredentials
 	 * @return projId
@@ -907,12 +911,12 @@ public class SkytapUtils {
 	/**
 	 * Prepends the workspace path to a save file name as a default if user has
 	 * not provided a full path.
-	 * 
+	 *
 	 * @param build
 	 * @param savefile
-	 * 
+	 *
 	 * @return fullpath
-	 * 
+	 *
 	 */
 	public static String convertFileNameToFullPath(AbstractBuild build,
 			String savefile) {
@@ -942,7 +946,7 @@ public class SkytapUtils {
 	/**
 	 * Executes a Skytap API call in order to get the network id of the network
 	 * whose name was provided by the user.
-	 * 
+	 *
 	 * @param confId
 	 * @param netName
 	 * @return
