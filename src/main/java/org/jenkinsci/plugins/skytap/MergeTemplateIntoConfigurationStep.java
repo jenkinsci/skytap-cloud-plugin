@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import org.apache.http.client.methods.HttpPut;
 import org.jenkinsci.plugins.skytap.SkytapBuilder.SkytapAction;
@@ -106,7 +107,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error obtaining runtime environment id: "
@@ -115,7 +116,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 		// get runtime template id
 		try {
-			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID,
+			runtimeTemplateID = SkytapUtils.getRuntimeId(build, templateID,
 					expTemplateFile);
 		} catch (FileNotFoundException ex) {
 			JenkinsLogger.error("Error obtaining runtime template id: "
@@ -167,7 +168,7 @@ public class MergeTemplateIntoConfigurationStep extends SkytapAction {
 
 			FilePath fp = new FilePath(build.getWorkspace(), expConfigFile);
 			try {
-				fp.write(httpRespBody);
+				fp.write(httpRespBody, null);
 			} catch (IOException e) {
 				JenkinsLogger.error("Error: " + e.getMessage());
 

@@ -115,7 +115,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		String expTemplateDescription = SkytapUtils.expandEnvVars(build, templateDescription);
 
 		try {
-			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(this.configurationID, expConfigurationFile);
+			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(build, this.configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e2) {
 			JenkinsLogger.error("Error obtaining environment id: " + e2.getMessage());
 			return false;
@@ -159,7 +159,7 @@ public class CreateTemplateFromConfigurationStep extends SkytapAction {
 		// output to the file system
 		FilePath fp = new FilePath(build.getWorkspace(), expTemplateFile);
 		try {
-			fp.write(httpRespBody);
+			fp.write(httpRespBody, null);
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error: " + e.getMessage());

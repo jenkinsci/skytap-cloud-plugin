@@ -96,7 +96,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
@@ -206,7 +206,7 @@ public class CreatePublishedServiceStep extends SkytapAction {
 
 			// output to the file system
 			FilePath fp = new FilePath(build.getWorkspace(), expPublishedServiceFile);
-			fp.write(serviceOutputString);
+			fp.write(serviceOutputString, null);
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error: " + e.getMessage());

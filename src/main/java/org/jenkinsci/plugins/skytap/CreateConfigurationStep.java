@@ -118,7 +118,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		JenkinsLogger.log("Config Name: " + expConfigName);
 
 		try {
-			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID,
+			runtimeTemplateID = SkytapUtils.getRuntimeId(build, templateID,
 					expTemplateFile);
 		} catch (FileNotFoundException e1) {
 			JenkinsLogger.error("Error obtaining template id: "
@@ -214,7 +214,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
 				expConfigFile);
 
-		FilePath fp = new FilePath(build.getWorkspace(), expConfigFile)
+		FilePath fp = new FilePath(build.getWorkspace(), expConfigFile);
 		try {
 			fp.write(httpRespBody, null);
 		} catch (IOException e) {

@@ -133,9 +133,11 @@ public class NetworkConnectStep extends SkytapAction {
 		try {
 
 			runtimeSourceNetworkConfigurationID = SkytapUtils.getRuntimeId(
+					build,
 					sourceNetworkConfigurationID,
 					expSourceNetworkConfigurationFile);
 			runtimeTargetNetworkConfigurationID = SkytapUtils.getRuntimeId(
+					build,
 					targetNetworkConfigurationID,
 					expTargetNetworkConfigurationFile);
 

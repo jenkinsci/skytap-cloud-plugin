@@ -108,7 +108,7 @@ public class DeleteContainerStep extends SkytapAction {
 		// get runtime container id
 		try {
 			this.runtimeContainerID = SkytapUtils.getRuntimeId(
-					containerID, expContainerFile);
+					build, containerID, expContainerFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving container id: "
 					+ e.getMessage());

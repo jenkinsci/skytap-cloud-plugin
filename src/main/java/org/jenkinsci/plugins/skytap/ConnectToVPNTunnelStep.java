@@ -176,7 +176,7 @@ public class ConnectToVPNTunnelStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger

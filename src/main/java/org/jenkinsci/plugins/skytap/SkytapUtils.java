@@ -25,6 +25,7 @@ import hudson.EnvVars;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
 import hudson.util.VariableResolver;
+import hudson.FilePath;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -368,27 +369,25 @@ public class SkytapUtils {
 	 * @param filepath
 	 * @return
 	 */
-	public static JsonObject getJsonObjectFromFile(String filepath) {
+	public static JsonObject getJsonObjectFromFile(AbstractBuild build, String filepath) {
 
 		JsonObject jo = null;
-
+		String expConfigFile = SkytapUtils.convertFileNameToFullPath(build, filepath);
 		try {
-			BufferedReader reader = new BufferedReader(new FileReader(filepath));
-			String line, results = "";
-			while ((line = reader.readLine()) != null) {
-				results += line;
-
-			}
-			reader.close();
+			FilePath fp = new FilePath(build.getWorkspace(), expConfigFile);
 
 			JsonParser parser = new JsonParser();
-			JsonElement je = parser.parse(results);
+			JsonElement je = parser.parse(fp.readToString());
 			jo = je.getAsJsonObject();
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error retrieving JsonObject from file "
 					+ filepath + ".");
 			JenkinsLogger.error("Error message: " + e.getMessage());
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error retrieving JsonObject from file "
+                                        + filepath + ".");
+			JenkinsLogger.error("Error: " + e.getMessage());
 		}
 
 		return jo;
@@ -825,7 +824,7 @@ public class SkytapUtils {
 	 * @param confId
 	 * @return runtimeConfigurationId
 	 */
-	public static String getRuntimeId(String usersId, String usersFile)
+	public static String getRuntimeId(AbstractBuild build, String usersId, String usersFile)
 			throws FileNotFoundException {
 
 		String runtimeID = "";
@@ -835,7 +834,7 @@ public class SkytapUtils {
 			JenkinsLogger.log("User provided file: " + usersFile);
 
 			// read the id from the config file
-			JsonObject jo = SkytapUtils.getJsonObjectFromFile(usersFile);
+			JsonObject jo = SkytapUtils.getJsonObjectFromFile(build, usersFile);
 
 			// if object returned was null, reading the file has failed, so fail
 			// the build step

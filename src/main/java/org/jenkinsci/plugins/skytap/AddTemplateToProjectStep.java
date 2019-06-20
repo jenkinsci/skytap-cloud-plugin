@@ -77,7 +77,7 @@ public class AddTemplateToProjectStep extends SkytapAction {
 		
 		// get runtime template id
 		try {
-			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID, expTemplateFile);
+			runtimeTemplateID = SkytapUtils.getRuntimeId(build, templateID, expTemplateFile);
 		}catch (FileNotFoundException e){
 			JenkinsLogger.error("Error obtaining runtime id: " + e.getMessage());
 			return false;

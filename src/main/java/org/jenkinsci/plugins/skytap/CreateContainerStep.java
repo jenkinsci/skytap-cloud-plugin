@@ -113,7 +113,7 @@ public class CreateContainerStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
@@ -246,7 +246,7 @@ public class CreateContainerStep extends SkytapAction {
 		try {
 
 			FilePath fp = new FilePath(build.getWorkspace(), expContainerSaveFile);
-			fp.write(postResponse);
+			fp.write(postResponse, null);
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error: " + e.getMessage());

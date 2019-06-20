@@ -87,7 +87,7 @@ public class GetContainerMetaDataStep extends SkytapAction {
 					expConfigFile);
 		}
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
@@ -157,7 +157,7 @@ public class GetContainerMetaDataStep extends SkytapAction {
 
 			// output to the file system
 			FilePath fp = new FilePath(build.getWorkspace(), expContainerDataFile);
-			fp.write(containerMetadataResponse);
+			fp.write(containerMetadataResponse, null);
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error: " + e.getMessage());

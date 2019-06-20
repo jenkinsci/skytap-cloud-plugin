@@ -112,7 +112,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID, expConfigurationFile);
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error obtaining runtime id: " + e.getMessage());
 			return false;
@@ -168,7 +168,7 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 				// to busy runstates needs to be reconsidered
 				// but a change to a simple exponential backoff
 				// will do for now-- jchenry
-				int sleepTime = (2^i*BASE_RETRY_INTERVAL_SECONDS);
+				int sleepTime = (int)Math.pow(2,i)*BASE_RETRY_INTERVAL_SECONDS;
 
 				JenkinsLogger.log("Sleeping for " + sleepTime + " seconds.");
 

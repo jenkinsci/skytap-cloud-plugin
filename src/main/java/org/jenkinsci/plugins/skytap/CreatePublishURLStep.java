@@ -129,7 +129,7 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
@@ -171,7 +171,7 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		// write url to file
 		try {
-			fp.write(pubSetUrl);
+			fp.write(pubSetUrl, null);
 
 		} catch (IOException e) {
 			JenkinsLogger.error("Error: " + e.getMessage());

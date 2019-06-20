@@ -229,7 +229,7 @@ public class DeleteConfigurationStep extends SkytapAction {
 		// get runtime config id
 		try {
 			this.runtimeConfigurationID = SkytapUtils.getRuntimeId(
-					configurationID, expConfigurationFile);
+					build, configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
