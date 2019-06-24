@@ -2,11 +2,11 @@ package org.jenkinsci.plugins.skytap;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -87,26 +87,26 @@ public class GetContainerMetaDataStep extends SkytapAction {
 					expConfigFile);
 		}
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
 					+ e.getMessage());
 			return false;
 		}
-		
+
 		// if the user provided a vm name,
 		// get the vm id.. queries that use the vm name return different types of responses
-		
+
 		if(!vmName.isEmpty()){
-		
+
 			try {
 				this.runtimeVMID = SkytapUtils.getVMIDFromName(runtimeConfigurationID, vmName, authCredentials);
 			} catch (SkytapException e) {
 				JenkinsLogger.error(e.getMessage());
 				return false;
 			}
-		
+
 		} else { runtimeVMID = vmID; }
 
 		// get container ID from name
@@ -118,7 +118,7 @@ public class GetContainerMetaDataStep extends SkytapAction {
 			JenkinsLogger.error(e.getMessage());
 			return false;
 		}
-		
+
 		// build get request url
 		String getContainerMetadataURL = buildGetContainerDataURL(containerId);
 
@@ -156,16 +156,17 @@ public class GetContainerMetaDataStep extends SkytapAction {
 		try {
 
 			// output to the file system
-			File file = new File(expContainerDataFile);
-			Writer output = null;
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(containerMetadataResponse);
-			output.close();
+			FilePath fp = new FilePath(build.getWorkspace(), expContainerDataFile);
+			fp.write(containerMetadataResponse, null);
 
 		} catch (IOException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 
 			JenkinsLogger.error("Skytap Plugin failed to save container metadata to file: "
 					+ expContainerDataFile);
+			return false;
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 			return false;
 		}
 

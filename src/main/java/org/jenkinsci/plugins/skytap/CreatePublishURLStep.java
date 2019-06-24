@@ -18,14 +18,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -36,6 +35,7 @@ import java.util.List;
 
 import hudson.Extension;
 import hudson.model.AbstractBuild;
+import hudson.FilePath;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -68,7 +68,7 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	@XStreamOmitField
 	private String runtimeConfigurationID;
-	
+
 	@XStreamOmitField
 	private String authCredentials;
 
@@ -104,18 +104,18 @@ public class CreatePublishURLStep extends SkytapAction {
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		JenkinsLogger.defaultLogMessage("Creating Sharing Portal");
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
-		
+
 		if(preFlightSanityChecks()==false){
 			return false;
 		}
-		
+
 		this.globalVars = globalVars;
 		this.authCredentials = SkytapUtils.getAuthCredentials(build);
 
 		// expand environment variables where it makes sense
 		String expConfigFile = SkytapUtils.expandEnvVars(build,
 				configurationFile);
-		
+
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 
@@ -123,13 +123,13 @@ public class CreatePublishURLStep extends SkytapAction {
 			expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
 					expConfigFile);
 		}
-		
-		
+
+
 		String expUrlFile = SkytapUtils.expandEnvVars(build, urlSaveFilename);
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID,
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID,
 					expConfigFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error retrieving environment id: "
@@ -162,31 +162,31 @@ public class CreatePublishURLStep extends SkytapAction {
 		// get url
 		JenkinsLogger.log("Sharing Portal URL: " + pubSetUrl);
 
-		Writer output = null;
-		
+
 		// if user has provided just a filename with no path, default to
 		// place it in their Jenkins workspace
 		expUrlFile = SkytapUtils.convertFileNameToFullPath(build, expUrlFile);
-		
-		File file = new File(expUrlFile);
+
+		FilePath fp = new FilePath(build.getWorkspace(), expUrlFile);
 
 		// write url to file
 		try {
-
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(pubSetUrl);
-			output.close();
+			fp.write(pubSetUrl, null);
 
 		} catch (IOException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 
 			JenkinsLogger.error("Skytap Plugin failed to save URL to file: "
 					+ expUrlFile);
+			return false;
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 			return false;
 		}
 
 		JenkinsLogger.defaultLogMessage("URL " + pubSetUrl
 				+ " successfully created and saved to file: " + expUrlFile);
-		
+
 		JenkinsLogger.defaultLogMessage("----------------------------------------");
 		return true;
 
@@ -269,7 +269,7 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		// check response for errors
 		SkytapUtils.checkResponseForErrors(response);
-		
+
 		// extract url from response
 		String respUrl = SkytapUtils.getValueFromJsonResponseBody(response,
 				"desktops_url");
@@ -287,13 +287,13 @@ public class CreatePublishURLStep extends SkytapAction {
 
 		HttpGet hg = SkytapUtils.buildHttpGetRequest(reqUrl,
 				this.authCredentials);
-		
+
 		// extract vm ids
 		String response = SkytapUtils.executeHttpRequest(hg);
 
 		// check response for errors
 		SkytapUtils.checkResponseForErrors(response);
-		
+
 		// get id and name of newly created template
 		JsonParser parser = new JsonParser();
 		JsonElement je = parser.parse(response);
@@ -322,13 +322,13 @@ public class CreatePublishURLStep extends SkytapAction {
 			this.password = urlPassword;
 		}
 	}
-	
+
 	/**
 	 * This method is a final check to ensure that user inputs are legitimate.
-	 * Any situation where the user has entered both inputs in an either/or scenario 
+	 * Any situation where the user has entered both inputs in an either/or scenario
 	 * will fail the build. If the user has left both blank where we need one, it will
 	 * also fail.
-	 * 
+	 *
 	 * @return Boolean sanityCheckPassed
 	 */
 	private Boolean preFlightSanityChecks(){
@@ -338,7 +338,7 @@ public class CreatePublishURLStep extends SkytapAction {
 			JenkinsLogger.error("Values were provided for both environment ID and file. Please provide just one or the other.");
 			return false;
 		}
-		
+
 		// check whether we have neither conf id or file
 		if(this.configurationFile.equals("") && this.configurationID.equals("")){
 			JenkinsLogger.error("No value was provided for environment ID or file. Please provide either a valid Skytap environment ID, or a valid environment file.");
@@ -350,13 +350,13 @@ public class CreatePublishURLStep extends SkytapAction {
 			JenkinsLogger.error("No value was provided for URL save file. Please provide a valid filename.");
 			return false;
 		}
-		
+
 		// should there be a password? was one provided?
 		if(this.hasPassword && this.urlPassword.equals("")){
 			JenkinsLogger.error("It was indicated the URL should have a password but none was provided. Please provide a password.");
 			return false;
 		}
-		
+
 		return true;
 	}
 

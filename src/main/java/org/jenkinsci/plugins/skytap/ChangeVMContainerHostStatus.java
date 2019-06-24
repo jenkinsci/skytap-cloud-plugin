@@ -126,7 +126,7 @@ public class ChangeVMContainerHostStatus extends SkytapAction {
 
 		// get runtime environment id
 		try {
-			runtimeConfigurationID = SkytapUtils.getRuntimeId(configurationID, expConfigurationFile);
+			runtimeConfigurationID = SkytapUtils.getRuntimeId(build, configurationID, expConfigurationFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error obtaining runtime id: " + e.getMessage());
 			return false;

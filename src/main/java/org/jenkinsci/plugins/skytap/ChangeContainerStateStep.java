@@ -109,7 +109,7 @@ public class ChangeContainerStateStep extends SkytapAction {
 
 		// get runtime container id
 		try {
-			runtimeContainerID = SkytapUtils.getRuntimeId(containerID, expContainerFile);
+			runtimeContainerID = SkytapUtils.getRuntimeId(build, containerID, expContainerFile);
 		} catch (FileNotFoundException e) {
 			JenkinsLogger.error("Error obtaining runtime container id: " + e.getMessage());
 			return false;

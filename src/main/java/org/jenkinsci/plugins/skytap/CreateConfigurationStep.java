@@ -18,13 +18,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URLEncoder;
@@ -33,6 +32,7 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.BuildListener;
+import hudson.FilePath;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -118,7 +118,7 @@ public class CreateConfigurationStep extends SkytapAction {
 		JenkinsLogger.log("Config Name: " + expConfigName);
 
 		try {
-			runtimeTemplateID = SkytapUtils.getRuntimeId(templateID,
+			runtimeTemplateID = SkytapUtils.getRuntimeId(build, templateID,
 					expTemplateFile);
 		} catch (FileNotFoundException e1) {
 			JenkinsLogger.error("Error obtaining template id: "
@@ -214,18 +214,17 @@ public class CreateConfigurationStep extends SkytapAction {
 		expConfigFile = SkytapUtils.convertFileNameToFullPath(build,
 				expConfigFile);
 
-		Writer output = null;
-		File file = new File(expConfigFile);
+		FilePath fp = new FilePath(build.getWorkspace(), expConfigFile);
 		try {
-
-			output = new BufferedWriter(new FileWriter(file));
-			output.write(httpRespBody);
-			output.close();
+			fp.write(httpRespBody, null);
 		} catch (IOException e) {
-
+			JenkinsLogger.error("Error: " + e.getMessage());
 			JenkinsLogger
 					.error("Skytap Plugin failed to save environment to file: "
 							+ expConfigFile);
+			return false;
+		} catch (InterruptedException e) {
+			JenkinsLogger.error("Error: " + e.getMessage());
 			return false;
 		}
 
@@ -279,7 +278,7 @@ public class CreateConfigurationStep extends SkytapAction {
 	/**
 	 * This method verifies the busy status of the template to be used. In the
 	 * event of a busy status, it enters a wait/retry loop.
-	 * 
+	 *
 	 * @param tempId
 	 */
 	private Boolean checkIsTemplateAvailable(String tempId) {
@@ -363,7 +362,7 @@ public class CreateConfigurationStep extends SkytapAction {
 	 * Any situation where the user has entered both inputs in an either/or
 	 * scenario will fail the build. If the user has left both blank where we
 	 * need one, it will also fail.
-	 * 
+	 *
 	 * @return Boolean sanityCheckPassed
 	 */
 	private Boolean preFlightSanityChecks() {
