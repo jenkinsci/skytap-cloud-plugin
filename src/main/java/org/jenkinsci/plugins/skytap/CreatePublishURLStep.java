@@ -36,6 +36,7 @@ import java.util.List;
 import hudson.Extension;
 import hudson.model.AbstractBuild;
 import hudson.FilePath;
+import hudson.util.Secret;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -60,7 +61,7 @@ public class CreatePublishURLStep extends SkytapAction {
 	private final String permissionOption;
 
 	private final Boolean hasPassword;
-	private final String urlPassword;
+	private final Secret urlPassword;
 
 	// these will be initialized when the step is run
 	@XStreamOmitField
@@ -315,10 +316,10 @@ public class CreatePublishURLStep extends SkytapAction {
 
 	// "requirePassword":{"urlPassword":"qsdqweq"}
 	public static class RequirePasswordBlock {
-		private String password;
+		private Secret password;
 
 		@DataBoundConstructor
-		public RequirePasswordBlock(String urlPassword) {
+		public RequirePasswordBlock(Secret urlPassword) {
 			this.password = urlPassword;
 		}
 	}
@@ -385,7 +386,7 @@ public class CreatePublishURLStep extends SkytapAction {
 	}
 
 	public String getUrlPassword() {
-		return urlPassword;
+		return Secret.toString(urlPassword);
 	}
 
 	public String getPortalName() {

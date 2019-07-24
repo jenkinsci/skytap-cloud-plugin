@@ -18,7 +18,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-//                        
+//
 package org.jenkinsci.plugins.skytap;
 
 import hudson.EnvVars;
@@ -29,6 +29,7 @@ import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.tasks.BuildWrapper;
 import hudson.tasks.BuildWrapperDescriptor;
+import hudson.util.Secret;
 
 import java.io.IOException;
 import java.util.Map;
@@ -39,11 +40,11 @@ public class SkytapBuildWrapper extends BuildWrapper {
 
 	@Extension
 	public static class DescriptorImpl extends BuildWrapperDescriptor {
-	
+
 		public DescriptorImpl() {
 			load();
 		}
-		
+
 		@Override
 		public String getDisplayName() {
 			return "Skytap Cloud Authentication Credentials";
@@ -57,49 +58,49 @@ public class SkytapBuildWrapper extends BuildWrapper {
 	}
 
 	private final String userId;
-	private final String authKey;
+	private final Secret authKey;
 
 	@DataBoundConstructor
-	public SkytapBuildWrapper(final String userId, final String authKey) {
+	public SkytapBuildWrapper(final String userId, final Secret authKey) {
 		super();
 		this.userId = userId;
 		this.authKey = authKey;
 	}
-	
+
 	public String getUserId() {
 		return userId;
 	}
 
 	public String getAuthKey() {
-		return authKey;
+		return Secret.toString(authKey);
 	}
-	
+
 	@Override
 	  public BuildWrapper.Environment setUp(
 	      @SuppressWarnings("rawtypes") final AbstractBuild build,
 	      final Launcher launcher, final BuildListener listener)
 	      throws IOException, InterruptedException
 	  {
-	   
+
 	       EnvVars env = build.getEnvironment(listener);
 	       env.put("userId", userId);
-	       env.put("authKey", authKey);
-	       
+	       env.put("authKey", Secret.toString(authKey));
+
 	    return new Environment()
 	    {
 	      /* empty implementation */
 	    };
 	  }
-	
+
 	@Override
 	public void makeBuildVariables(AbstractBuild build,
 			Map<String, String> variables) {
 
 		variables.put("userId", userId);
-		variables.put("authKey", authKey);
+		variables.put("authKey", Secret.toString(authKey));
 
 	}
-	
+
     @Override
     public DescriptorImpl getDescriptor() {
         return (DescriptorImpl)super.getDescriptor();
