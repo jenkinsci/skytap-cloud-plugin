@@ -49,11 +49,11 @@ public class ChangeConfigurationStateStep extends SkytapAction {
 
 	// number of times it will poll Skytap to see if correct runstate has been
 	// reached
-	private static final int NUMBER_OF_RETRIES = 7;
+	private static final int NUMBER_OF_RETRIES = 10;
 
 	// base retry interval - on every retry it will double the current value,
 	// backing off
-	private static final int BASE_RETRY_INTERVAL_SECONDS = 20;
+	private static final int BASE_RETRY_INTERVAL_SECONDS = 10;
 
 	// these vars will be initialized when the step is run
 
